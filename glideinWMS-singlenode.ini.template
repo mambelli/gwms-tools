@@ -1,0 +1,124 @@
+[DEFAULT]
+
+; Define some variable to make it easy for substituion
+glideinwms_version = branch_v2plus
+; suffix used in the names of the components
+glideinwms_version1 = branch_v2plus
+; prefix used in the components names
+name_root = fermicloud-test-
+javascriptrrd_version = 0.6.4
+condor_version = 8.1.0
+condor_platform = x86_64_RedHat6
+fqdn = fermicloud312.fnal.gov
+
+; CHANGES TO ANYTHING BEYOND THIS POINT RARELY REQUIRED
+
+vdt_version = vdt
+homes_dir = /local/home
+install_vdt_client = n
+vdt_location =
+x509_cert_dir = /etc/grid-security/certificates
+host_dn = /DC=com/DC=DigiCert-Grid/O=Open Science Grid/OU=Services/CN=%(fqdn)s
+proxy_dn = %(host_dn)s
+glideinwms_location = %(homes_dir)s/factory/%(glideinwms_version)s/glideinwms
+pacman_location = 
+pacman_url      = 
+install_type = tarball
+
+installers_dir = /opt/installers
+javascriptrrd_location = %(installers_dir)s/javascriptrrd-%(javascriptrrd_version)s
+condor_tarball = %(installers_dir)s/condor-%(condor_version)s-%(condor_platform)s-stripped.tar.gz
+condor_admin_email = parag@fnal.gov
+
+;--------------------------------------------------
+[WMSCollector]
+
+hostname = %(fqdn)s
+username = gcondor
+service_name = %(name_root)sWMS_Collector-%(glideinwms_version1)s
+condor_location = %(homes_dir)s/%(username)s/%(glideinwms_version)s/wmscollector
+collector_port = 8618
+privilege_separation = y
+frontend_users = %(name_root)sFrontend-%(glideinwms_version1)s:vo1user
+x509_cert = /etc/grid-security/condorcert.pem
+x509_key = /etc/grid-security/condorkey.pem
+x509_gsi_dn = %(host_dn)s
+number_of_schedds = 1
+split_condor_config = y
+
+;--------------------------------------------------
+[Factory]
+
+hostname = %(fqdn)s
+username = factory
+service_name = %(name_root)sGlideinFactory-%(glideinwms_version1)s
+install_location = %(homes_dir)s/%(username)s/%(glideinwms_version)s/glideinsubmit
+logs_dir = /var/factory/%(glideinwms_version)s/glideinlogs
+client_log_dir = /var/factory/%(glideinwms_version)s/clientlogs
+client_proxy_dir = /var/factory/%(glideinwms_version)s/clientproxies
+instance_name = v1_0
+use_vofrontend_proxy = y
+use_glexec = y 
+use_ccb = y
+match_authentication = y
+ress_host = osg-ress-4.fnal.gov
+entry_vos = dzero
+entry_filters = (int(GlueCEPolicyMaxCPUTime)<(25*60))
+web_location = /var/www/html/factory/%(glideinwms_version)s
+web_url = http://%(hostname)s:8000/factory/
+x509_proxy = 
+x509_gsi_dn = 
+
+;--------------------------------------------------
+[UserCollector]
+
+hostname = %(fqdn)s
+username = gcondor
+service_name = %(name_root)sUser_Pool-%(glideinwms_version1)s
+x509_gsi_dn =
+condor_location = %(homes_dir)s/%(username)s/%(glideinwms_version)s/userpool
+collector_port = 9618
+number_of_secondary_collectors = 2
+x509_cert = /etc/grid-security/condorcert.pem
+x509_key = /etc/grid-security/condorkey.pem
+x509_gsi_dn = %(host_dn)s
+split_condor_config = y
+
+
+;--------------------------------------------------
+[Submit]
+
+hostname = %(fqdn)s
+username = gcondor
+service_name = %(name_root)sUser_Submit-%(glideinwms_version1)s
+condor_location = %(homes_dir)s/%(username)s/%(glideinwms_version)s/usersubmit
+x509_cert = /etc/grid-security/condorcert.pem
+x509_key = /etc/grid-security/condorkey.pem
+x509_gsi_dn = %(host_dn)s
+number_of_schedds = 1
+schedd_shared_port =
+
+;--------------------------------------------------
+[VOFrontend]
+
+hostname = %(fqdn)s
+username = frontend
+service_name = %(name_root)sFrontend-%(glideinwms_version1)s
+frontend_identity = vo1user@%(fqdn)s
+install_location = %(homes_dir)s/%(username)s/%(glideinwms_version)s/frontstage
+instance_name = v1_0
+split_condor_config = y
+condor_location = %(homes_dir)s/frontend/%(glideinwms_version)s/glidecondor
+logs_dir = %(homes_dir)s/frontend/%(glideinwms_version)s/frontlogs
+x509_proxy = %(homes_dir)s/frontend/security/grid_proxy
+x509_gsi_dn = %(proxy_dn)s
+glidein_proxy_files = %(x509_proxy)s
+glidein_proxy_dns = %(x509_gsi_dn)s
+glexec_use = optional
+expose_grid_env = True
+match_authentication = y
+group_name = main
+userjob_constraints = (JobUniverse==5)&&(GLIDEIN_Is_Monitor =!= TRUE)&&(JOB_Is_Monitor =!= TRUE)
+match_string = glidein["attrs"]["GLIDEIN_Site"] in job["DESIRED_Sites"].split(",")
+web_url = http://%(fqdn)s:8000/frontend/
+web_location = /var/www/html/frontend/%(glideinwms_version)s
