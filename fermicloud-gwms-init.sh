@@ -6,54 +6,95 @@
 # 2. Check for existing of my kerberoes principal before starting
 # 3. Auto pull ini files and dependencies
 ################################################################################
+
+####################################################
+# Use:
+# Customize ini file (initial lines and user dependent lines)
+# Run as root
+# fermicloud-gwms-init -v GWMS_VERSION -i INIFILE
+####################################################
+
+# Set defaults for options
+GWMS_VERSION=master
+GWMS_INSTANCE=i1
+BASE_DIR=/opt
+DEV_USER=marcom
+#DEV_USER=$USER
+HTTP_PORT=8000
+INSTALL_TYPE=git
+INSTALL_OPTION=""
+USER_PROXY=""
+# default? ACTION=
+# default? INI_FILE=
+
+# Needed in parameter processing 
+abspath() {
+    # absolute path of $1 (resolving symlinks)
+    # readlink does not exist on OSX (is something different)
+    rets=`readlink -f $1 2>/dev/null`
+    if [ $? -ne 0 ]; then
+        rets=$( cd $(dirname $1); pwd)/$(basename $1)
+    fi
+    echo $rets
+}
+
 function help_msg {
   cat << EOF
 fermicloud-gwms-init [options] package_list
  -h 		this help text
  -l 		List available versions
- -v VERSION 	Select VERSION in the GIT or TAR repository (master by default)
- -b DIR		Set base directory (Def: /opt)
- -u USER 	Set the developer USER (for downloads and git)
- -t      	Install using tarfiles
+ -v VERSION 	Select VERSION in the GIT or TAR repository [Def: master]
+                "RC_" prefix in the version means that it is in the release candidates repo
+ -r RVERSION 	If used, RVERSION will be used for the path names instead of VERSION
+ -e INSTANCE 	Set the INSTANCE, e.g. to have multiple tests of the same version [Def: i1]
+ -b DIR		Set base directory [Def: /opt]
+ -u USER 	Set the developer USER (for downloads and git) [Def: $DEV_USER]
+ -x PROXY 	Path od the user proxy file
+ -t      	Install using tarfiles (instead of git)
  -p PORT 	Set HTTP port for monitoring pages
- -o OPTLIST 	Comma separated install options (nopre,nofcrl,...) 
+ -i INIFILE 	Ini file used for the configuration
+ -o OPTLIST 	Comma separated install options (nopre,nofcrl,...): 
+   nopre 	-skip pre-install steps (dload as well)
+   nodload 	-skip download and overwrite of aux tarballs and ini files
+   nofcrl 	-skip fetch crl invocation
+   certforce 	-force relinking of certificate files
+   nocode       -skip code download (from git or tar). You must have it already 
+   keepini      -keep the ini file as it is without filtering with script options
+   norpm        -skip the installation of prerequisite rpm
  package_list is the list of components to install (or all)
 EOF
 }
 
-# Set defaults for options
-GWMS_VERSION=master
-BASE_DIR=/opt
-DEV_USER=marcom
-HTTP_PORT=8000
-INSTALL_TYPE=git
-INSTALL_OPTION=""
-# default? ACTION=
-# default? INI_FILE=
-
 # Evaluate options
 # check optlist with [[ $optlist == *,opt1,* ]]
-while getopts thlv:r:b:u:i:p:o: option
+while getopts thle:v:r:b:u:x:i:p:o: option
 do
   case "${option}"
   in 
   "t") INSTALL_TYPE=tar;;
   "h") help_msg; exit 0;;
   "l") ACTION=list;;
+  "e") GWMS_INSTANCE="${OPTARG}";;
   "v") GWMS_VERSION="${OPTARG}";;
   "r") GWMS_VERSION_RENAME="${OPTARG}";;
   "b") BASE_DIR="${OPTARG}";;
   "u") DEV_USER="${OPTARG}";;
+  "x") USER_PROXY="${OPTARG}";;
   "i") INI_FILE="${OPTARG}";;
   "p") HTTP_PORT="${OPTARG}";;
   "o") INSTALL_OPTION=",${OPTARG},";;
   esac
 done
 
+## MM debug 
+# echo " Options ($OPTIND):   t $INSTALL_TYPE,l $ACTION, i $GWMS_INSTANCE, v $GWMS_VERSION, r $GWMS_VERSION_RENAME, b $BASE_DIR, u $DEV_USER, i $INI_FILE, p $HTTP_PORT, o $INSTALL_OPTION"
+
+ 
+
 # Remove all the options
 shift $(($OPTIND - 1))
 
-#version=$GWMS_VERSION
+#version=$GWMS_VERSI	ON
 #MYUSER=$DEV_USER
 
 # This script installs the required pre-reqs and sets up a bare-bone
@@ -100,12 +141,14 @@ if [ -z "$GWMS_VERSION_RENAME" ]; then
 fi
 
 httpd_port=$HTTP_PORT
-# Used in directory names
+# Used in directory names and component names
 gwms_version=$GWMS_VERSION_RENAME
 # Used in GIT branch/Tar file names
 gwms_tag=$GWMS_VERSION
 
 ###### Users
+# Make sure that the users are consistent with the ini file
+# TODO: replace users in ini file
 users="gcondor factory frontend testuser vo1user"
 test_user="testuser"
 # DEV_USER: Developer installing the package and owning the shared files
@@ -132,25 +175,32 @@ local_home="/local/home"
 # Downloads dir
 downloads_dir="/grid/data/$DEV_USER/glideinwms-autoinstaller"
 
-# Name of the root directory in GIT
+# Name of the root directory in GIT and TARball distributions
+# Consistency is imporant
 GWMS_REPO_ROOT_NAME=glideinwms
 work_dir="$BASE_DIR"
 gwms_location="$work_dir/$GWMS_REPO_ROOT_NAME"
 ini_dir="$work_dir/ini"
 pkg_dir="$work_dir/installers"
+certs_dir="$work_dir/security"
 
-if [ -z "$INI_FILE" ]; then
+if [[ -z "$INI_FILE" ]]; then
+  echo "Ini file not provided, using default $ini_dir/glideinWMS-singlenode.ini"
   INI_FILE="$ini_dir/glideinWMS-singlenode.ini"
+else
+  INI_FILE=`abspath $INI_FILE`
 fi
+#echo "Using ini file: $INI_FILE"
 
 # Map of dirs to be created with user as the key
 # These can be used only with create_dirs that takes care of ~ substitution
 # so that it is the intended home dir and not the user executing the script
 declare -a dir_user
-dir_user[0]="$local_home $pkg_dir $ini_dir $vdt_location /etc/grid-security"
+dir_user[0]="$local_home $pkg_dir $ini_dir $certs_dir $vdt_location /etc/grid-security"
 #dir_user[1]=""
-# For the Factory
-dir_user[2]="/var/www/html/factory /var/factory/$gwms_version/glideinlogs"
+# For the Factory, bersion dependent
+# These must be consistent w/ the INI file (factory section)
+dir_user[2]="/var/www/html/factory /var/factory/$gwms_version/factorylogs"
 # For the frontend
 dir_user[3]="/var/www/html/frontend ~/security"
 # Security for any other user (e.g. tester)
@@ -171,7 +221,6 @@ ts() {
     # It was return ...
     echo `date +%s`
 }
-
 
 create_users() {
     echo "Creating users ..."
@@ -265,7 +314,7 @@ install_vdt() {
 
     # First figure out the latest epel-release rpm in the repo
     epel_rpm_list="/tmp/rpms.$$"
-    wget $epel_repo --output-document=$epel_rpm_list
+    wget $epel_repo/ --output-document=$epel_rpm_list
     epel_release_rpm=`grep epel-release $epel_rpm_list | awk -F'"' '{print $2}'`
     epel_release="$epel_repo/$epel_release_rpm"
 
@@ -289,6 +338,7 @@ install_afs() {
 }
 
 setup_wspace() {
+    # create links to gwms code in all bases of workspaces (TODO: is workspace always in home dir?)
     for user in $users
     do
         su $user -c "mkdir -p ~/$gwms_version"
@@ -329,6 +379,30 @@ setup_gwms_git() {
     chown -R $DEV_USER.$dev_group "$tmp_base_dir/$GWMS_REPO_ROOT_NAME"
 }
 
+setup_proxies() { 
+  # setup the grid proxies
+  # Frontend uses a proxy generated by the host cert (other server use the cert directly)
+  # Frontend need also a user cert
+  # $1 could be the path to the user cert
+  if [ "x$1" != "x" ]; then 
+    echo "Copying the user certificate"
+    execute "cp $1  $certs_dir/user_proxy"
+  fi
+
+  execute "voms-proxy-init -cert /etc/grid-security/hostcert.pem -key /etc/grid-security/hostkey.pem -out $certs_dir/grid_proxy -valid 300:0"
+  execute "cp $certs_dir/grid_proxy ~frontend/security/grid_proxy"
+  execute "chown frontend: ~frontend/security/grid_proxy"
+  execute "chmod 0600 ~frontend/security/grid_proxy"
+  if [ -f "$certs_dir/user_proxy" ]; then
+    execute "cp $certs_dir/user_proxy ~frontend/security/user_proxy"
+    execute "chown frontend: ~frontend/security/user_proxy"
+    execute "chmod 0600 ~frontend/security/user_proxy"
+  else
+    echo "No user proxy file: $certs_dir/user_proxy" 
+    echo "You need to provide a proxy for the pilot jobs in ~frontend/security/user_proxy"
+    # echo "The DN must be consistent with the INI file"
+  fi
+}
 
 download_condor_and_others(){
     # copying htcondor, javascript and ini files
@@ -378,19 +452,28 @@ if [[ $INSTALL_OPTION != *,nopre,* ]]; then
   create_users
 
   # Create user owned required directories
-  create_dirs "${dir_user[2]}" "factory"
+  #moved out - create_dirs "${dir_user[2]}" "factory"
   create_dirs "${dir_user[3]}" "frontend"
   create_dirs "${dir_user[4]}" "testuser"
+fi 
 
-  # Install prereq rpms
-  kernel_version="`uname -r`"
-  if [ "`echo $kernel_version | grep el5`" = "$kernel_version" ]; then
-    execute "yum --enablerepo=dag install -y  $prereq_rpms"
-  elif [ "`echo $kernel_version | grep el6`" = "$kernel_version" ]; then
-    execute "yum install -y  $prereq_rpms"
+# one of the factory dirs is version dependent, has to be redone all the time
+create_dirs "${dir_user[2]}" "factory"
+execute "ln -sf /var/www/html/$gwms_version/factory /var/www/html/factory"
+
+if [[ $INSTALL_OPTION != *,nopre,* ]]; then 
+  if [[ $INSTALL_OPTION != *,norpm,* ]]; then 
+    # Install prereq rpms
+    kernel_version="`uname -r`"
+    if [ "`echo $kernel_version | grep el5`" = "$kernel_version" ]; then
+      execute "yum --enablerepo=dag install -y  $prereq_rpms"
+    elif [ "`echo $kernel_version | grep el6`" = "$kernel_version" ]; then
+      execute "yum install -y  $prereq_rpms"
+    fi
   fi
 
   # Setup the certificates
+  # TODO: These have to be consistent w/ the ini file
   echo "Certificates setup.  Exit code 1 is OK (existing files will not be overwritten)..."
   execute "ln -s /etc/cloud-security/`hostname`-hostcert.pem /etc/grid-security/hostcert.pem"
   execute "ln -s /etc/cloud-security/`hostname`-hostkey.pem /etc/grid-security/hostkey.pem"
@@ -399,41 +482,59 @@ if [[ $INSTALL_OPTION != *,nopre,* ]]; then
   execute "ln -s /etc/grid-security/hostkey.pem /etc/grid-security/condorkey.pem"
 
   # Install VDT
-  install_vdt
+  if [[ $INSTALL_OPTION != *,norpm,* ]]; then 
+    install_vdt
+  fi
 
+  # 
   # AFS installed only as needed. Change?
   
   # Download condor and ini files to $BASE_DIR
-  download_condor_and_others
+  if [[ $INSTALL_OPTION != *,nodload,* ]]; then 
+    download_condor_and_others
+  fi
 fi
 
-  # Setup the certificates
+# Setup the certificates
 if [[ $INSTALL_OPTION == *,certforce,* ]]; then 
-    echo "Forcing new certificates (overwrite old ones)..."
-    execute "ln -sf /etc/cloud-security/`hostname`-hostcert.pem /etc/grid-security/hostcert.pem"
-    execute "ln -sf /etc/cloud-security/`hostname`-hostkey.pem /etc/grid-security/hostkey.pem"
-    execute "ln -sf /etc/grid-security/hostcert.pem /etc/grid-security/condorcert.pem"
-    execute "ln -sf /etc/grid-security/hostkey.pem /etc/grid-security/condorkey.pem"
+  # TODO: These have to be consistent w/ the ini file
+  echo "Forcing new certificates (overwrite old ones)..."
+  execute "ln -sf /etc/cloud-security/`hostname`-hostcert.pem /etc/grid-security/hostcert.pem"
+  execute "ln -sf /etc/cloud-security/`hostname`-hostkey.pem /etc/grid-security/hostkey.pem"
+  execute "ln -sf /etc/grid-security/hostcert.pem /etc/grid-security/condorcert.pem"
+  execute "ln -sf /etc/grid-security/hostkey.pem /etc/grid-security/condorkey.pem"
 fi
 
-
-
+# fetch-crl must be before the proxies setup. otherwise CRL verification may fail
 if [[ $INSTALL_OPTION != *,nofcrl,* ]]; then 
   # Execute fetch-crl
   echo "Running fetch-crl, OK even if ExitCode>0, ..."
   execute "fetch-crl"
 fi 
 
+# Setup the proxies
+if [[ $INSTALL_OPTION != *,noproxy,* ]]; then 
+  setup_proxies $USER_PROXY
+fi  
 
 # Change the httpd port and start it
 customize_httpd $httpd_port
 execute "service httpd restart"
 
 # Setup Glideinwms
-if [ "x$INSTALL_TYPE" = "xtar" ]; then
-  setup_gwms_tar $BASE_DIR
-else
-  setup_gwms_git $BASE_DIR
+if [[ $INSTALL_OPTION != *,nocode,* ]]; then 
+  # if the code is there, then backup and let it make a new directory
+  # GIT would fail if the clone op if the directory exists
+  pushd $BASE_DIR
+  if [ -d $GWMS_REPO_ROOT_NAME ]; then
+    mv $GWMS_REPO_ROOT_NAME "$GWMS_REPO_ROOT_NAME.bck.`ts`"
+  fi
+  if [ "x$INSTALL_TYPE" = "xtar" ]; then
+    setup_gwms_tar $BASE_DIR
+  else
+    setup_gwms_git $BASE_DIR
+  fi
+  popd
 fi 
 
 # Setup the dir structure
@@ -445,27 +546,51 @@ setup_wspace
 # gwms version
 # hostname
 
-echo "Filtering ini file $INI_FILE"
 ini_file="$INI_FILE" #ini_dir/glideinWMS-singlenode.ini"
-ini_file_tmp=$ini_file.$$
 
+#TODO: some tmo file are leftover in the working directory. Find out what created them
+# sed?
 filter_ini () {
   TARGET_KEY=$1
   REPLACEMENT_VALUE=$2
   CONFIG_FILE=$3
-  sed -c -i "s;\($TARGET_KEY *= *\).*;\1$REPLACEMENT_VALUE;" $CONFIG_FILE  
+  sed -c -ibckfilter "s;\($TARGET_KEY *= *\).*;\1$REPLACEMENT_VALUE;" $CONFIG_FILE  
 } 
 
-execute "cp $ini_file $ini_file_tmp"
-filter_ini glideinwms_version $GWMS_VERSION  $ini_file_tmp
-filter_ini glideinwms_version1 $GWMS_VERSION  $ini_file_tmp
-#filter_ini javascriptrrd_version $GWMS_VERSION  $ini_file_tmp
-#filter_ini condor_version $GWMS_VERSION  $ini_file_tmp
-#filter_ini condor_platform $GWMS_VERSION  $ini_file_tmp
-filter_ini fqdn `hostname`  $ini_file_tmp
+if [[ $INSTALL_OPTION != *,keepini,* ]]; then 
+  echo "Filtering ini file $INI_FILE"
+  ini_file_tmp=$ini_file.$$
+  execute "cp $ini_file $ini_file_tmp"
+  # version name
+  filter_ini glideinwms_version $GWMS_VERSION_RENAME  $ini_file_tmp
+  # used in paths
+  filter_ini glideinwms_version1 $GWMS_VERSION  $ini_file_tmp
+  filter_ini glideinwms_instance_name $GWMS_INSTANCE  $ini_file_tmp
+  #filter_ini javascriptrrd_version $GWMS_  $ini_file_tmp
+  #filter_ini condor_version $GWMS_  $ini_file_tmp
+  #filter_ini condor_platform $GWMS_  $ini_file_tmp
+  filter_ini fqdn `hostname`  $ini_file_tmp
+  filter_ini httpd_port $HTTP_PORT  $ini_file_tmp
+  filter_ini dev_user $DEV_USER  $ini_file_tmp
 
-ini_file="$ini_file.`ts`"
-execute "mv $ini_file_tmp $ini_file"
+
+  # moving the ini file (and link) to ini_dir that is for sure readable by all
+  # original INI_FILE may fail factory and frontend installation
+  ini_file="$ini_dir/`basename $ini_file`.`ts`"
+  execute "mv $ini_file_tmp $ini_file"
+  execute "chmod a+r $ini_file"
+  execute "ln -sf $ini_file $ini_dir/`basename ${INI_FILE}`.$GWMS_VERSION_RENAME"
+  echo "Ini file to be used in the installation: $ini_file ($ini_dir/`basename ${INI_FILE}`.$GWMS_VERSION_RENAME)"
+else
+  su factory -c "cat $ini_file > /dev/null"
+  if [ $? -ne 0 ]; then
+    echo "Ini file ($ini_file) is not publically readable (or its directory is not executable)"
+    echo "WARNING: Factory and Frontend installations will fail" 
+    # check $@ and exit with error?
+  fi
+  echo "Ini file to be used in the installation: $ini_file"
+fi
+
 
 #####################################
 # Install Glideinwms components
@@ -513,8 +638,18 @@ done
 
 #su frontend -c "/opt/glideinwms/install/manage-glideins --install vofrontend --ini /opt/ini/glideinWMS-singlenode.ini"
 
+
+echo; echo "-------------- ini file -------------"
+echo "The ini file used is:  $ini_file"
+echo "To check the status: $manage_glideins --ini $ini_file --status all"
+
+
 # ======================
 # Add sschedd to the daemon list or check with John for everything in one go
 # source ~gcondor/v2plus/userpool/condor.sh
 # add to config: SEC_ENABLE_MATCH_PASSWORD_AUTHENTICATION = True
 #condor_reconfig -full
+
+# ================= Examples
+# ./fermicloud-gwms-init.sh -v master_5071 -i ./glideinWMS-singlenode.ini all
+# ./fermicloud-gwms-init.sh -v master_5071 -i /opt/ini/glideinWMS-singlenode.ini.1393024565 -o nopre,keepini,nofcrl vof fac
