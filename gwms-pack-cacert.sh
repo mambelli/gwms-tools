@@ -37,7 +37,6 @@ $0 [ options ]
 EOF
 }
 
-OPT_STRING=''
 while getopts hc:o:rv option
 do
   case "${option}"
