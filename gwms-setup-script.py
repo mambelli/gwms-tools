@@ -23,6 +23,7 @@ import xml.etree.ElementTree as ET
 FACTORY='fermicloud110.fnal.gov'
 FRONTEND='fermicloud048.fnal.gov'
 XML_LOG_ALL='<process_log backup_count="5" extension="all" max_days="7.0" max_mbytes="100.0" min_days="3.0" msg_types="INFO,DEBUG,ERR,WARN,EXCEPTION"/>'
+XML_LOG_BAD='<process_log backup_count="5" extension="bad" max_days="7.0" max_mbytes="100.0" min_days="3.0" msg_types="ERR,WARN,EXCEPTION"/>'
 
 XML_COLLECTOR1='<collector DN="/DC=com/DC=DigiCert-Grid/O=Open Science Grid/OU=Services/CN=${factory}" comment="Define factory collector globally for simplicity" factory_identity="gfactory@${factory}" my_identity="vofrontend_service@${factory}" node="${factory}"/>'
 XML_COLLECTOR2='<collector DN="/DC=org/DC=opensciencegrid/O=Open Science Grid/OU=Services/CN=${factory}" comment="Define factory collector globally for simplicity" factory_identity="gfactory@${factory}" my_identity="vofrontend_service@${factory}" node="${factory}"/>'
@@ -91,6 +92,7 @@ def factory_config1(fname='/etc/gwms-factory/glideinWMS.xml', entries=['ITB_FC_C
     # process_logs
     elem = tree.find('log_retention/process_logs')
     elem.append(ET.XML(XML_LOG_ALL))
+    elem.append(ET.XML(XML_LOG_BAD))
     elem = tree.find('condor_tarballs')
     tree.getroot().remove(elem)
     tree.getroot().append(ET.XML(HTC_TARBALLS))
@@ -164,6 +166,7 @@ def frontend_config1(fname='/etc/gwms-frontend/frontend.xml'):
     # process_logs
     elem = tree.find('log_retention/process_logs')
     elem.append(ET.XML(XML_LOG_ALL))
+    elem.append(ET.XML(XML_LOG_BAD))
     # factory
     elem = tree.find('match/factory')
     elem.set('query_expr', 'True')
