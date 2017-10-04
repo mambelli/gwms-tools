@@ -16,19 +16,25 @@ function clean_gwms_fe {
   gwms_dir="$BASEDIR/gwms-$mydate"
   mkdir "$gwms_dir"
   pushd /var/log/gwms-frontend > /dev/null
-  mv frontend/frontend*log $gwms_dir/
-  mv frontend/startup.log $gwms_dir/
-  mv group_main/main*log $gwms_dir/
+  mv frontend/frontend*log "$gwms_dir/"
+  mv frontend/startup.log "$gwms_dir/"
+  mv group_main/main*log "$gwms_dir/"
   echo "Logs moved to $gwms_dir"
   popd > /dev/null
 }
 
 function clean_gwms_fa {
+  # counting on entry names being unique (and not facory* or group*)
+  # client logs not moved: job stdout/err and condor logs
   gwms_dir="$BASEDIR/gwms-$mydate"
   mkdir "$gwms_dir"
   pushd /var/log/gwms-factory > /dev/null
-  mv server/factory/factory*log $gwms_dir/
-  mv server/factory/group*log $gwms_dir/
+  mv server/factory/factory*log "$gwms_dir/"
+  mv server/factory/group*log "$gwms_dir/"
+  for i in server/entry_*; do 
+      j="`basename $i`"
+      mv "$i/${j:6}"*log "$gwms_dir/"
+  done
   echo "Logs moved to $gwms_dir"
   popd > /dev/null
 }
@@ -65,6 +71,17 @@ fi
 
 mkdir -p "$BASEDIR"
 
+# GWMS stop (before cycling HTCondor)
+if [ -e /etc/gwms-frontend/frontend.xml ]; then
+  echo "Stopping frontend"
+  service gwms-frontend stop
+fi
+
+if [ -e /etc/gwms-factory/glideinWMS.xml ]; then
+  echo "Stopping factory"
+  service gwms-factory stop
+fi
+
 # HTCondor
 echo "Cleaning HTCondor"
 service condor stop
@@ -73,17 +90,20 @@ service condor stop
 clean_condor
 service condor start
 
+# To le condor restart and avoid errors
+echo "Waiting for condor to start"
+sleep 10
+condor_status -any
+
 # GWMS
 if [ -e /etc/gwms-frontend/frontend.xml ]; then
   echo "Cleaning frontend"
-  service gwms-frontend stop
   clean_gwms_fe
   service gwms-frontend start
 fi
 
 if [ -e /etc/gwms-factory/glideinWMS.xml ]; then
   echo "Cleaning factory"
-  service gwms-factory stop
   clean_gwms_fa
   service gwms-factory start
 fi
