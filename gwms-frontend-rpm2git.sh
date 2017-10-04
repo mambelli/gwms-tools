@@ -16,6 +16,11 @@ else
   G_ROOTDIR="$2"
 fi
 
+if [ ! -d $G_ROOTDIR ]; then
+  echo "Git root directory ($G_ROOTDIR) is not available. Aborting."
+  exit 1
+fi
+
 if [ -d /usr/lib/python2.6/site-packages/glideinwms${WASRPM} ]; then
   rm -rf /usr/lib/python2.6/site-packages/glideinwms.old
   mv /usr/lib/python2.6/site-packages/glideinwms /usr/lib/python2.6/site-packages/glideinwms.old
