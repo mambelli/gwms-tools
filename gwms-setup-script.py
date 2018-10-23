@@ -56,7 +56,6 @@ XML_SCHEDD1='            <schedd DN="/DC=com/DC=DigiCert-Grid/O=Open Science Gri
 XML_SCHEDD2='            <schedd DN="/DC=org/DC=opensciencegrid/O=Open Science Grid/OU=Services/CN=${frontend}" fullname="${frontend}"/>'
 
 
-
 def is_osg_certificate(certfname="/etc/grid-security/hostcert.pem"):
     try:
         p = subprocess.Popen("openssl x509 -noout -subject -in %s" % certfname, shell=True, 
@@ -112,7 +111,7 @@ def factory_add(entry, fname='/etc/gwms-factory/glideinWMS.xml'):
         if i.get('name')==entry:
             print "Entry %s already there. Removing it." % entry
             elem.remove(i)
-    print "Adding entry: %s" % entry
+    print "Adding entry (to %s.new): %s" % (fname, entry)
     elem.append(ET.XML(ENTRIES[entry]))
     tree.write("%s.new" % fname)
     
@@ -130,6 +129,7 @@ def factory_remove(entry, fname='/etc/gwms-factory/glideinWMS.xml'):
     if not_found:
         print "Entry %s not found" % entry
     else:
+        print "The new content is in: %s" % fname
         tree.write("%s.new" % fname)
 
 
@@ -197,16 +197,45 @@ def frontend_config1(fname='/etc/gwms-frontend/frontend.xml'):
 
 
 # Assumption that factory and frontend have the same type of certificate (digicert/osg)
+
+# To submit to HTCondor-CEs the certificates need to be recognized, https://ticket.grid.iu.edu/32342
+# Lines to authenticate hosts that are part of the OSG, RDIG, ANSP, Terena, and CERN via certificate (copying them below):
+HTCE_DNs='''GSI "^\/DC\=com\/DC\=DigiCert-Grid\/O=Open Science Grid\/OU\=Services\/CN\=(host\/)?([A-Za-z0-9.\-]*)$" \\2@daemon.opensciencegrid.org
+GSI "^\/DC\=DigiCert-Grid\/DC\=com\/O=Open Science Grid\/OU\=Services\/CN\=(host\/)?([A-Za-z0-9.\-]*)$" \\2@daemon.opensciencegrid.org
+GSI "^\/DC\=org\/DC\=opensciencegrid\/O=Open Science Grid\/OU\=Services\/CN\=(host\/)?([A-Za-z0-9.\-]*)$" \\2@daemon.opensciencegrid.org
+GSI "^\/C\=RU\/O\=RDIG\/OU\=hosts\/OU=*\/CN\=(host\/)?([A-Za-z0-9.\-]*)$" \\2@daemon.opensciencegrid.org
+GSI "^\/C\=BR\/O\=ANSP\/OU\=ANSPGrid\ CA\/OU\=Services\/CN\=(host\/)?([A-Za-z0-9.\-]*)$" \\2@daemon.opensciencegrid.org
+GSI "^\/DC\=org\/DC\=terena\/DC\=tcs.*\/CN\=(host\/)?([A-Za-z0-9.\-]*)$" \\2@daemon.opensciencegrid.org
+GSI "^\/DC\=ch\/DC\=cern\/OU\=computers\/CN\=(host\/)?([A-Za-z0-9.\-]*)$" \\2@cern.ch
+'''
+
 # old personal cert GSI "^\/DC\=com\/DC\=DigiCert\-Grid\/O\=Open\ Science\ Grid\/OU\=People\/CN\=Marco\ Mambelli$$" vofrontend_service
+# Fermilab cert GSI "^/DC=org/DC=cilogon/C=US/O=Fermi National Accelerator Laboratory/OU=People/CN=Marco Mambelli/CN=UID:marcom" vofrontend_service 
 HTC_CERTMAP1 = '''GSI "^\/DC\=com\/DC\=DigiCert\-Grid\/O\=Open\ Science\ Grid\/OU\=Services\/CN\=${frontend}$$" vofrontend_service
 GSI "^\/DC\=com\/DC\=DigiCert\-Grid\/O\=Open\ Science\ Grid\/OU\=Services\/CN\=${factory}$$" gfactory
+GSI "^/DC=org/DC=cilogon/C=US/O=Fermi National Accelerator Laboratory/OU=People/CN=Marco Mambelli/CN=UID:marcom" vofrontend_service 
 GSI "^\/DC\=org\/DC\=opensciencegrid\/O\=Open\ Science\ Grid\/OU\=People\/CN\=Marco\ Mambelli\ 247$$" vofrontend_service
+GSI "^\/DC\=com\/DC\=DigiCert-Grid\/O=Open Science Grid\/OU\=Services\/CN\=(host\/)?([A-Za-z0-9.\-]*)$$" \\2@daemon.opensciencegrid.org
+GSI "^\/DC\=DigiCert-Grid\/DC\=com\/O=Open Science Grid\/OU\=Services\/CN\=(host\/)?([A-Za-z0-9.\-]*)$$" \\2@daemon.opensciencegrid.org
+GSI "^\/DC\=org\/DC\=opensciencegrid\/O=Open Science Grid\/OU\=Services\/CN\=(host\/)?([A-Za-z0-9.\-]*)$$" \\2@daemon.opensciencegrid.org
+GSI "^\/C\=RU\/O\=RDIG\/OU\=hosts\/OU=*\/CN\=(host\/)?([A-Za-z0-9.\-]*)$$" \\2@daemon.opensciencegrid.org
+GSI "^\/C\=BR\/O\=ANSP\/OU\=ANSPGrid\ CA\/OU\=Services\/CN\=(host\/)?([A-Za-z0-9.\-]*)$$" \\2@daemon.opensciencegrid.org
+GSI "^\/DC\=org\/DC\=terena\/DC\=tcs.*\/CN\=(host\/)?([A-Za-z0-9.\-]*)$$" \\2@daemon.opensciencegrid.org
+GSI "^\/DC\=ch\/DC\=cern\/OU\=computers\/CN\=(host\/)?([A-Za-z0-9.\-]*)$$" \\2@cern.ch
 GSI (.*) anonymous
 FS (.*) \\1
 '''
 HTC_CERTMAP2 = '''GSI "^\/DC\=org\/DC\=opensciencegrid\/O\=Open\ Science\ Grid\/OU\=Services\/CN\=${frontend}$$" vofrontend_service
 GSI "^\/DC\=org\/DC\=opensciencegrid\/O\=Open\ Science\ Grid\/OU\=Services\/CN\=${factory}$$" gfactory
+GSI "^/DC=org/DC=cilogon/C=US/O=Fermi National Accelerator Laboratory/OU=People/CN=Marco Mambelli/CN=UID:marcom" vofrontend_service 
 GSI "^\/DC\=org\/DC\=opensciencegrid\/O\=Open\ Science\ Grid\/OU\=People\/CN\=Marco\ Mambelli\ 247$$" vofrontend_service
+GSI "^\/DC\=com\/DC\=DigiCert-Grid\/O=Open Science Grid\/OU\=Services\/CN\=(host\/)?([A-Za-z0-9.\-]*)$$" \\2@daemon.opensciencegrid.org
+GSI "^\/DC\=DigiCert-Grid\/DC\=com\/O=Open Science Grid\/OU\=Services\/CN\=(host\/)?([A-Za-z0-9.\-]*)$$" \\2@daemon.opensciencegrid.org
+GSI "^\/DC\=org\/DC\=opensciencegrid\/O=Open Science Grid\/OU\=Services\/CN\=(host\/)?([A-Za-z0-9.\-]*)$$" \\2@daemon.opensciencegrid.org
+GSI "^\/C\=RU\/O\=RDIG\/OU\=hosts\/OU=*\/CN\=(host\/)?([A-Za-z0-9.\-]*)$$" \\2@daemon.opensciencegrid.org
+GSI "^\/C\=BR\/O\=ANSP\/OU\=ANSPGrid\ CA\/OU\=Services\/CN\=(host\/)?([A-Za-z0-9.\-]*)$$" \\2@daemon.opensciencegrid.org
+GSI "^\/DC\=org\/DC\=terena\/DC\=tcs.*\/CN\=(host\/)?([A-Za-z0-9.\-]*)$$" \\2@daemon.opensciencegrid.org
+GSI "^\/DC\=ch\/DC\=cern\/OU\=computers\/CN\=(host\/)?([A-Za-z0-9.\-]*)$$" \\2@cern.ch
 GSI (.*) anonymous
 FS (.*) \\1
 '''
@@ -214,7 +243,15 @@ HTC_CERTMAP_ALL = '''GSI "^\/DC\=com\/DC\=DigiCert\-Grid\/O\=Open\ Science\ Grid
 GSI "^\/DC\=org\/DC\=opensciencegrid\/O\=Open\ Science\ Grid\/OU\=Services\/CN\=${frontend}$$" vofrontend_service
 GSI "^\/DC\=com\/DC\=DigiCert\-Grid\/O\=Open\ Science\ Grid\/OU\=Services\/CN\=${factory}$$" gfactory
 GSI "^\/DC\=org\/DC\=opensciencegrid\/O\=Open\ Science\ Grid\/OU\=Services\/CN\=${factory}$$" gfactory
+GSI "^/DC=org/DC=cilogon/C=US/O=Fermi National Accelerator Laboratory/OU=People/CN=Marco Mambelli/CN=UID:marcom" vofrontend_service 
 GSI "^\/DC\=org\/DC\=opensciencegrid\/O\=Open\ Science\ Grid\/OU\=People\/CN\=Marco\ Mambelli\ 247$$" vofrontend_service
+GSI "^\/DC\=com\/DC\=DigiCert-Grid\/O=Open Science Grid\/OU\=Services\/CN\=(host\/)?([A-Za-z0-9.\-]*)$$" \\2@daemon.opensciencegrid.org
+GSI "^\/DC\=DigiCert-Grid\/DC\=com\/O=Open Science Grid\/OU\=Services\/CN\=(host\/)?([A-Za-z0-9.\-]*)$$" \\2@daemon.opensciencegrid.org
+GSI "^\/DC\=org\/DC\=opensciencegrid\/O=Open Science Grid\/OU\=Services\/CN\=(host\/)?([A-Za-z0-9.\-]*)$$" \\2@daemon.opensciencegrid.org
+GSI "^\/C\=RU\/O\=RDIG\/OU\=hosts\/OU=*\/CN\=(host\/)?([A-Za-z0-9.\-]*)$$" \\2@daemon.opensciencegrid.org
+GSI "^\/C\=BR\/O\=ANSP\/OU\=ANSPGrid\ CA\/OU\=Services\/CN\=(host\/)?([A-Za-z0-9.\-]*)$$" \\2@daemon.opensciencegrid.org
+GSI "^\/DC\=org\/DC\=terena\/DC\=tcs.*\/CN\=(host\/)?([A-Za-z0-9.\-]*)$$" \\2@daemon.opensciencegrid.org
+GSI "^\/DC\=ch\/DC\=cern\/OU\=computers\/CN\=(host\/)?([A-Za-z0-9.\-]*)$$" \\2@cern.ch
 GSI (.*) anonymous
 FS (.*) \\1
 '''
@@ -410,6 +447,115 @@ ENTRIES = {'ITB_FC_CE2': """      <entry name="ITB_FC_CE2" auth_method="grid_pro
          </monitorgroups>
       </entry>
 """,
+       'ITB_FC_HTC_SIN_CE2': """      <entry auth_method="grid_proxy" enabled="True" gatekeeper="fermicloud378.fnal.gov fermicloud378.fnal.gov:9619" gridtype="condor" name="ITB_FC_HTC_SIN_CE2" trust_domain="grid" verbosity="std" work_dir="OSG">
+         <config>
+            <max_jobs>
+               <default_per_frontend glideins="5000" held="50" idle="100" />
+               <per_entry glideins="10000" held="1000" idle="2000" />
+               <per_frontends>
+               </per_frontends>
+            </max_jobs>
+            <release max_per_cycle="20" sleep="0.2" />
+            <remove max_per_cycle="5" sleep="0.2" />
+            <restrictions require_glidein_glexec_use="False" require_voms_proxy="False" />
+            <submit cluster_size="10" max_per_cycle="100" sleep="0.2" slots_layout="partitionable">
+               <submit_attrs>
+                <submit_attr name="RequestCpus" value="4" />
+               </submit_attrs>
+            </submit>
+         </config>
+         <allow_frontends>
+         </allow_frontends>
+         <attrs>
+            <attr const="True" glidein_publish="True" job_publish="False" name="GLIDEIN_SINGULARITY_REQUIRE" parameter="True" publish="True" type="string" value="PREFERRED" />
+            <attr const="False" glidein_publish="False" job_publish="False" name="CONDOR_ARCH" parameter="True" publish="True" type="string" value="default" />
+            <attr const="False" glidein_publish="False" job_publish="False" name="CONDOR_OS" parameter="True" publish="True" type="string" value="rhel7" />
+            <attr const="True" glidein_publish="False" job_publish="False" name="GLEXEC_JOB" parameter="True" publish="True" type="string" value="False" />
+            <attr const="True" glidein_publish="True" job_publish="True" name="GLIDEIN_Site" parameter="True" publish="True" type="string" value="ITB_FC_HTC_SIN_CE2" />
+            <attr const="True" glidein_publish="True" job_publish="True" name="GLIDEIN_CPUS" parameter="True" publish="True" type="string" value="4" />
+            <attr const="True" glidein_publish="True" job_publish="False" name="USE_CCB" parameter="True" publish="True" type="string" value="True" />
+            <attr name="GLIDEIN_Job_Max_Time" value="1800" type="int" publish="False" parameter="True"/>
+         </attrs>
+         <files>
+         </files>
+         <infosys_refs>
+         </infosys_refs>
+         <monitorgroups>
+         </monitorgroups>
+      </entry>
+""",
+       'ITB_FC_SIN_CE2': """      <entry auth_method="grid_proxy" enabled="True" gatekeeper="fermicloud378.fnal.gov fermicloud378.fnal.gov:9619" gridtype="condor" name="ITB_FC_SIN_CE2" trust_domain="grid" verbosity="std" work_dir="OSG">
+         <config>
+            <max_jobs>
+               <default_per_frontend glideins="5000" held="50" idle="100" />
+               <per_entry glideins="10000" held="1000" idle="2000" />
+               <per_frontends>
+               </per_frontends>
+            </max_jobs>
+            <release max_per_cycle="20" sleep="0.2" />
+            <remove max_per_cycle="5" sleep="0.2" />
+            <restrictions require_glidein_glexec_use="False" require_voms_proxy="False" />
+            <submit cluster_size="10" max_per_cycle="100" sleep="0.2" slots_layout="partitionable">
+               <submit_attrs>
+               </submit_attrs>
+            </submit>
+         </config>
+         <allow_frontends>
+         </allow_frontends>
+         <attrs>
+            <attr const="True" glidein_publish="True" job_publish="False" name="GLIDEIN_SINGULARITY_REQUIRE" parameter="True" publish="True" type="string" value="PREFERRED" />
+            <attr const="False" glidein_publish="False" job_publish="False" name="CONDOR_ARCH" parameter="True" publish="True" type="string" value="default" />
+            <attr const="False" glidein_publish="False" job_publish="False" name="CONDOR_OS" parameter="True" publish="True" type="string" value="rhel7" />
+            <attr const="True" glidein_publish="False" job_publish="False" name="GLEXEC_JOB" parameter="True" publish="True" type="string" value="False" />
+            <attr const="True" glidein_publish="True" job_publish="True" name="GLIDEIN_Site" parameter="True" publish="True" type="string" value="ITB_FC_SIN_CE2" />
+            <attr const="True" glidein_publish="True" job_publish="True" name="GLIDEIN_CPUS" parameter="True" publish="True" type="string" value="auto" />
+            <attr const="True" glidein_publish="True" job_publish="False" name="USE_CCB" parameter="True" publish="True" type="string" value="True" />
+            <attr name="GLIDEIN_Job_Max_Time" value="1800" type="int" publish="False" parameter="True"/>
+         </attrs>
+         <files>
+         </files>
+         <infosys_refs>
+         </infosys_refs>
+         <monitorgroups>
+         </monitorgroups>
+      </entry>
+""",
+    'ITB_FC_SIN_CE1': """      <entry auth_method="grid_proxy" enabled="True" gatekeeper="fermicloud105.fnal.gov fermicloud105.fnal.gov:9619" gridtype="condor" name="ITB_FC_SIN_CE1" trust_domain="grid" verbosity="std" work_dir="OSG">
+         <config>
+            <max_jobs>
+               <default_per_frontend glideins="5000" held="50" idle="100" />
+               <per_entry glideins="10000" held="1000" idle="2000" />
+               <per_frontends>
+               </per_frontends>
+            </max_jobs>
+            <release max_per_cycle="20" sleep="0.2" />
+            <remove max_per_cycle="5" sleep="0.2" />
+            <restrictions require_glidein_glexec_use="False" require_voms_proxy="False" />
+            <submit cluster_size="10" max_per_cycle="100" sleep="0.2" slots_layout="partitionable">
+               <submit_attrs>
+               </submit_attrs>
+            </submit>
+         </config>
+         <allow_frontends>
+         </allow_frontends>
+         <attrs>
+            <attr const="True" glidein_publish="True" job_publish="False" name="GLIDEIN_SINGULARITY_REQUIRE" parameter="True" publish="True" type="string" value="PREFERRED" />
+            <attr const="False" glidein_publish="False" job_publish="False" name="CONDOR_ARCH" parameter="True" publish="True" type="string" value="default" />
+            <attr const="False" glidein_publish="False" job_publish="False" name="CONDOR_OS" parameter="True" publish="True" type="string" value="rhel6" />
+            <attr const="True" glidein_publish="False" job_publish="False" name="GLEXEC_JOB" parameter="True" publish="True" type="string" value="False" />
+            <attr const="True" glidein_publish="True" job_publish="True" name="GLIDEIN_Site" parameter="True" publish="True" type="string" value="ITB_FC_SIN_CE1" />
+            <attr const="True" glidein_publish="True" job_publish="True" name="GLIDEIN_CPUS" parameter="True" publish="True" type="string" value="1" />
+            <attr const="True" glidein_publish="True" job_publish="False" name="USE_CCB" parameter="True" publish="True" type="string" value="True" />
+            <attr name="GLIDEIN_Job_Max_Time" value="1800" type="int" publish="False" parameter="True"/>
+         </attrs>
+         <files>
+         </files>
+         <infosys_refs>
+         </infosys_refs>
+         <monitorgroups>
+         </monitorgroups>
+      </entry>      
+""",
     'No': """
 """,
 }
@@ -417,10 +563,10 @@ ENTRIES = {'ITB_FC_CE2': """      <entry name="ITB_FC_CE2" auth_method="grid_pro
 
 if __name__ == "__main__":
     if len(sys.argv) != 3:
-        print "%s factory# frontend#" % sys.argv[0]
-        print "%s -a ENTRY_NAME" % sys.argv[0]
-        print "%s -a ENTRY_NAME" % sys.argv[0]
-        print "%s -l entries" % sys.argv[0]
+        print "%s factory# frontend#   : setup used in installation, do not run it multiple times" % sys.argv[0]
+        print "%s -a ENTRY_NAME        : add an entry" % sys.argv[0]
+        print "%s -d ENTRY_NAME        : remove an entry" % sys.argv[0]
+        print "%s -l entries           : list current entries (available and in factory)" % sys.argv[0]
         exit(1)
     special_command=True
     if sys.argv[1]=='-a':

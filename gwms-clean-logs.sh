@@ -36,6 +36,21 @@ function clean_gwms_fa {
       mv "$i/${j:6}"*log "$gwms_dir/"
   done
   echo "Logs moved to $gwms_dir"
+  if [ -n MV_CLIENT ]; then
+    for i in client/*; do
+      pushd "$i"
+      for j in *; do 
+	pushd "$j"
+	for k in entry_*; do
+	  mkdir "$gwms_dir/client_$i_$j_$k"
+	  mv "$k"/* "$gwms_dir/client_$i_$j_$k/"
+	done
+	popd > /dev/null
+      done
+      popd > /dev/null
+    done
+    echo "Client logs moved to $gwms_dir"
+  fi
   popd > /dev/null
 }
 
@@ -46,6 +61,7 @@ Clean (i.e. rotate to old directory) HTCondor and GWMS (frontend or factory) log
 -h 	print this message
 -d 	set HTCondor debug
 -D 	remove HTCondor debug
+-c 	move also Factory client logs (HTCondor and jobs stderr/out)
 EOF
 }
 
@@ -68,6 +84,11 @@ fi
 if [ "$1" = "-D" ]; then
   NODEBUG=yes
 fi
+if [ "$1" = "-c" ]; then
+  MV_CLIENT=yes
+fi
+
+
 
 mkdir -p "$BASEDIR"
 
