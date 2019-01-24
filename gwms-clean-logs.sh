@@ -29,11 +29,11 @@ function clean_gwms_fa {
   gwms_dir="$BASEDIR/gwms-$mydate"
   mkdir "$gwms_dir"
   pushd /var/log/gwms-factory > /dev/null
-  mv server/factory/factory*log "$gwms_dir/"
-  mv server/factory/group*log "$gwms_dir/"
+  mv server/factory/factory*.log* "$gwms_dir/"
+  mv server/factory/group*.log* "$gwms_dir/"
   for i in server/entry_*; do 
       j="`basename $i`"
-      mv "$i/${j:6}"*log "$gwms_dir/"
+      mv "$i/${j:6}"*.log* "$gwms_dir/"
   done
   echo "Logs moved to $gwms_dir"
   if [ -n MV_CLIENT ]; then
