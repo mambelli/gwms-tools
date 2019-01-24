@@ -16,9 +16,11 @@ function clean_gwms_fe {
   gwms_dir="$BASEDIR/gwms-$mydate"
   mkdir "$gwms_dir"
   pushd /var/log/gwms-frontend > /dev/null
-  mv frontend/frontend*log "$gwms_dir/"
+  mv frontend/frontend*.log* "$gwms_dir/"
   mv frontend/startup.log "$gwms_dir/"
-  mv group_main/main*log "$gwms_dir/"
+  for i in group_*; do 
+      mv "$i/${i:6}"*.log* "$gwms_dir/"
+  done
   echo "Logs moved to $gwms_dir"
   popd > /dev/null
 }
