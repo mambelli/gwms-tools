@@ -27,6 +27,7 @@ XML_LOG_BAD='<process_log backup_count="5" extension="bad" max_days="7.0" max_mb
 
 XML_COLLECTOR1='<collector DN="/DC=com/DC=DigiCert-Grid/O=Open Science Grid/OU=Services/CN=${factory}" comment="Define factory collector globally for simplicity" factory_identity="gfactory@${factory}" my_identity="vofrontend_service@${factory}" node="${factory}"/>'
 XML_COLLECTOR2='<collector DN="/DC=org/DC=opensciencegrid/O=Open Science Grid/OU=Services/CN=${factory}" comment="Define factory collector globally for simplicity" factory_identity="gfactory@${factory}" my_identity="vofrontend_service@${factory}" node="${factory}"/>'
+XML_COLLECTOR3='<collector DN="/DC=org/DC=incommon/C=US/ST=IL/L=Batavia/O=Fermi Research Alliance/OU=Fermilab/CN=${factory}" comment="Define factory collector globally for simplicity" factory_identity="gfactory@${factory}" my_identity="vofrontend_service@${factory}" node="${factory}"/>'
 
 XML_SECURITY1='''    <security classad_proxy="/etc/gwms-frontend/fe_proxy" proxy_DN="/DC=com/DC=DigiCert-Grid/O=Open Science Grid/OU=Services/CN=${frontend}" proxy_selection_plugin="ProxyAll" security_name="vofrontend_service" sym_key="aes_256_cbc">
       <credentials>
@@ -35,6 +36,12 @@ XML_SECURITY1='''    <security classad_proxy="/etc/gwms-frontend/fe_proxy" proxy
    </security>
 '''
 XML_SECURITY2='''    <security classad_proxy="/etc/gwms-frontend/fe_proxy" proxy_DN="/DC=org/DC=opensciencegrid/O=Open Science Grid/OU=Services/CN=${frontend}" proxy_selection_plugin="ProxyAll" security_name="vofrontend_service" sym_key="aes_256_cbc">
+      <credentials>
+         <credential absfname="/etc/gwms-frontend/mm_proxy" security_class="frontend" trust_domain="grid" type="grid_proxy"/>
+      </credentials>
+   </security>
+'''
+XML_SECURITY3='''    <security classad_proxy="/etc/gwms-frontend/fe_proxy" proxy_DN="/DC=org/DC=incommon/C=US/ST=IL/L=Batavia/O=Fermi Research Alliance/OU=Fermilab/CN=${frontend}" proxy_selection_plugin="ProxyAll" security_name="vofrontend_service" sym_key="aes_256_cbc">
       <credentials>
          <credential absfname="/etc/gwms-frontend/mm_proxy" security_class="frontend" trust_domain="grid" type="grid_proxy"/>
       </credentials>
@@ -51,9 +58,16 @@ XML_WMS_COLLECTOR2='''   <collectors>
       <collector DN="/DC=org/DC=opensciencegrid/O=Open Science Grid/OU=Services/CN=${frontend}" group="default" node="${frontend}:9620-9660" secondary="True"/>
    </collectors>
 '''
+XML_WMS_COLLECTOR3='''   <collectors>
+      <collector DN="/DC=org/DC=incommon/C=US/ST=IL/L=Batavia/O=Fermi Research Alliance/OU=Fermilab/CN=${frontend}" group="default" node="${frontend}:9618" secondary="False"/>
+      <collector DN="/DC=org/DC=incommon/C=US/ST=IL/L=Batavia/O=Fermi Research Alliance/OU=Fermilab/CN=${frontend}" group="default" node="${frontend}:9620-9660" secondary="True"/>
+   </collectors>
+'''
+
 
 XML_SCHEDD1='            <schedd DN="/DC=com/DC=DigiCert-Grid/O=Open Science Grid/OU=Services/CN=${frontend}" fullname="${frontend}"/>'
 XML_SCHEDD2='            <schedd DN="/DC=org/DC=opensciencegrid/O=Open Science Grid/OU=Services/CN=${frontend}" fullname="${frontend}"/>'
+XML_SCHEDD3='            <schedd DN="/DC=org/DC=incommon/C=US/ST=IL/L=Batavia/O=Fermi Research Alliance/OU=Fermilab/CN=${frontend}" fullname="${frontend}"/>'
 
 
 def is_osg_certificate(certfname="/etc/grid-security/hostcert.pem"):
@@ -68,11 +82,25 @@ def is_osg_certificate(certfname="/etc/grid-security/hostcert.pem"):
         print "Considering DigiCert certificates"
     return False
 
+def is_incommon_certificate(certfname="/etc/grid-security/hostcert.pem"):
+    try:
+        p = subprocess.Popen("openssl x509 -noout -subject -in %s" % certfname, shell=True, 
+                     stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        s1, s2 = p.communicate()
+        subj = s1[9:].strip()
+        return "DC=incommon" in subj
+    except:
+        print "Error evaluating host certificate: %s" % s2
+        print "Considering DigiCert certificates"
+    return False
+
 HTC_TARBALLS = """   <condor_tarballs>
       <condor_tarball arch="default" base_dir="/usr" os="default" version="default"/>
       <condor_tarball arch="default" base_dir="/var/lib/gwms-factory/condor/condor-8.4.0-x86_64_RedHat7-stripped" os="rhel7" version="default"/>
       <condor_tarball arch="default" base_dir="/var/lib/gwms-factory/condor/condor-8.4.0-x86_64_RedHat6-stripped" os="rhel6" version="default"/> 
       <condor_tarball arch="x86" base_dir="/var/lib/gwms-factory/condor/condor-8.4.0-x86_RedHat6-stripped" os="rhel6" version="default"/> 
+      <condor_tarball arch="default" base_dir="/var/lib/gwms-factory/condor/condor-8.8.2-x86_64_RedHat7-stripped" os="rhel7" version="8.8.2"/>
+      <condor_tarball arch="default" base_dir="/var/lib/gwms-factory/condor/condor-8.8.2-x86_64_RedHat6-stripped" os="rhel6" version="8.8.2"/> 
       <condor_tarball arch="default" base_dir="/var/lib/gwms-factory/condor/condor-8.2.6-x86_64_RedHat5-stripped" os="rhel5" version="8.2.6"/>
       <condor_tarball arch="default" base_dir="/var/lib/gwms-factory/condor/condor-8.2.6-x86_64_RedHat6-stripped" os="rhel6" version="8.2.6"/> 
    </condor_tarballs>
@@ -161,6 +189,11 @@ def frontend_config1(fname='/etc/gwms-frontend/frontend.xml'):
         XML_SECURITY = XML_SECURITY2
         XML_WMS_COLLECTOR = XML_WMS_COLLECTOR2
         XML_SCHEDD = XML_SCHEDD2
+    elif is_incommon_certificate():
+        XML_COLLECTOR = XML_COLLECTOR3
+        XML_SECURITY = XML_SECURITY3
+        XML_WMS_COLLECTOR = XML_WMS_COLLECTOR3
+        XML_SCHEDD = XML_SCHEDD3
     tree = ET.ElementTree()
     tree.parse(fname)
     # process_logs
@@ -215,6 +248,7 @@ HTC_CERTMAP1 = '''GSI "^\/DC\=com\/DC\=DigiCert\-Grid\/O\=Open\ Science\ Grid\/O
 GSI "^\/DC\=com\/DC\=DigiCert\-Grid\/O\=Open\ Science\ Grid\/OU\=Services\/CN\=${factory}$$" gfactory
 GSI "^/DC=org/DC=cilogon/C=US/O=Fermi National Accelerator Laboratory/OU=People/CN=Marco Mambelli/CN=UID:marcom" vofrontend_service 
 GSI "^\/DC\=org\/DC\=opensciencegrid\/O\=Open\ Science\ Grid\/OU\=People\/CN\=Marco\ Mambelli\ 247$$" vofrontend_service
+GSI "^\/DC\=org\/DC\=incommon\/C\=US\/ST\=IL\/L\=Batavia\/O\=Fermi\ Research\ Alliance\/OU\=Fermilab\/CN\=(host\/)?([A-Za-z0-9.\-]*)$$" \\2@daemon.opensciencegrid.org
 GSI "^\/DC\=com\/DC\=DigiCert-Grid\/O=Open Science Grid\/OU\=Services\/CN\=(host\/)?([A-Za-z0-9.\-]*)$$" \\2@daemon.opensciencegrid.org
 GSI "^\/DC\=DigiCert-Grid\/DC\=com\/O=Open Science Grid\/OU\=Services\/CN\=(host\/)?([A-Za-z0-9.\-]*)$$" \\2@daemon.opensciencegrid.org
 GSI "^\/DC\=org\/DC\=opensciencegrid\/O=Open Science Grid\/OU\=Services\/CN\=(host\/)?([A-Za-z0-9.\-]*)$$" \\2@daemon.opensciencegrid.org
@@ -229,6 +263,22 @@ HTC_CERTMAP2 = '''GSI "^\/DC\=org\/DC\=opensciencegrid\/O\=Open\ Science\ Grid\/
 GSI "^\/DC\=org\/DC\=opensciencegrid\/O\=Open\ Science\ Grid\/OU\=Services\/CN\=${factory}$$" gfactory
 GSI "^/DC=org/DC=cilogon/C=US/O=Fermi National Accelerator Laboratory/OU=People/CN=Marco Mambelli/CN=UID:marcom" vofrontend_service 
 GSI "^\/DC\=org\/DC\=opensciencegrid\/O\=Open\ Science\ Grid\/OU\=People\/CN\=Marco\ Mambelli\ 247$$" vofrontend_service
+GSI "^\/DC\=org\/DC\=incommon\/C\=US\/ST\=IL\/L\=Batavia\/O\=Fermi\ Research\ Alliance\/OU\=Fermilab\/CN\=(host\/)?([A-Za-z0-9.\-]*)$$" \\2@daemon.opensciencegrid.org
+GSI "^\/DC\=com\/DC\=DigiCert-Grid\/O=Open Science Grid\/OU\=Services\/CN\=(host\/)?([A-Za-z0-9.\-]*)$$" \\2@daemon.opensciencegrid.org
+GSI "^\/DC\=DigiCert-Grid\/DC\=com\/O=Open Science Grid\/OU\=Services\/CN\=(host\/)?([A-Za-z0-9.\-]*)$$" \\2@daemon.opensciencegrid.org
+GSI "^\/DC\=org\/DC\=opensciencegrid\/O=Open Science Grid\/OU\=Services\/CN\=(host\/)?([A-Za-z0-9.\-]*)$$" \\2@daemon.opensciencegrid.org
+GSI "^\/C\=RU\/O\=RDIG\/OU\=hosts\/OU=*\/CN\=(host\/)?([A-Za-z0-9.\-]*)$$" \\2@daemon.opensciencegrid.org
+GSI "^\/C\=BR\/O\=ANSP\/OU\=ANSPGrid\ CA\/OU\=Services\/CN\=(host\/)?([A-Za-z0-9.\-]*)$$" \\2@daemon.opensciencegrid.org
+GSI "^\/DC\=org\/DC\=terena\/DC\=tcs.*\/CN\=(host\/)?([A-Za-z0-9.\-]*)$$" \\2@daemon.opensciencegrid.org
+GSI "^\/DC\=ch\/DC\=cern\/OU\=computers\/CN\=(host\/)?([A-Za-z0-9.\-]*)$$" \\2@cern.ch
+GSI (.*) anonymous
+FS (.*) \\1
+'''
+HTC_CERTMAP3 = '''GSI "^/DC=org/DC=incommon/C=US/ST=IL/L=Batavia/O=Fermi Research Alliance/OU=Fermilab/CN=${frontend}$$" vofrontend_service
+GSI "^/DC=org/DC=incommon/C=US/ST=IL/L=Batavia/O=Fermi Research Alliance/OU=Fermilab/CN=${factory}$$" gfactory
+GSI "^/DC=org/DC=cilogon/C=US/O=Fermi National Accelerator Laboratory/OU=People/CN=Marco Mambelli/CN=UID:marcom" vofrontend_service 
+GSI "^\/DC\=org\/DC\=opensciencegrid\/O\=Open\ Science\ Grid\/OU\=People\/CN\=Marco\ Mambelli\ 247$$" vofrontend_service
+GSI "^\/DC\=org\/DC\=incommon\/C\=US\/ST\=IL\/L\=Batavia\/O\=Fermi\ Research\ Alliance\/OU\=Fermilab\/CN\=(host\/)?([A-Za-z0-9.\-]*)$$" \\2@daemon.opensciencegrid.org
 GSI "^\/DC\=com\/DC\=DigiCert-Grid\/O=Open Science Grid\/OU\=Services\/CN\=(host\/)?([A-Za-z0-9.\-]*)$$" \\2@daemon.opensciencegrid.org
 GSI "^\/DC\=DigiCert-Grid\/DC\=com\/O=Open Science Grid\/OU\=Services\/CN\=(host\/)?([A-Za-z0-9.\-]*)$$" \\2@daemon.opensciencegrid.org
 GSI "^\/DC\=org\/DC\=opensciencegrid\/O=Open Science Grid\/OU\=Services\/CN\=(host\/)?([A-Za-z0-9.\-]*)$$" \\2@daemon.opensciencegrid.org
@@ -241,10 +291,13 @@ FS (.*) \\1
 '''
 HTC_CERTMAP_ALL = '''GSI "^\/DC\=com\/DC\=DigiCert\-Grid\/O\=Open\ Science\ Grid\/OU\=Services\/CN\=${frontend}$$" vofrontend_service
 GSI "^\/DC\=org\/DC\=opensciencegrid\/O\=Open\ Science\ Grid\/OU\=Services\/CN\=${frontend}$$" vofrontend_service
+GSI "^/DC=org/DC=incommon/C=US/ST=IL/L=Batavia/O=Fermi Research Alliance/OU=Fermilab/CN=${frontend}$$" vofrontend_service
 GSI "^\/DC\=com\/DC\=DigiCert\-Grid\/O\=Open\ Science\ Grid\/OU\=Services\/CN\=${factory}$$" gfactory
 GSI "^\/DC\=org\/DC\=opensciencegrid\/O\=Open\ Science\ Grid\/OU\=Services\/CN\=${factory}$$" gfactory
+GSI "^/DC=org/DC=incommon/C=US/ST=IL/L=Batavia/O=Fermi Research Alliance/OU=Fermilab/CN=${factory}$$" gfactory
 GSI "^/DC=org/DC=cilogon/C=US/O=Fermi National Accelerator Laboratory/OU=People/CN=Marco Mambelli/CN=UID:marcom" vofrontend_service 
 GSI "^\/DC\=org\/DC\=opensciencegrid\/O\=Open\ Science\ Grid\/OU\=People\/CN\=Marco\ Mambelli\ 247$$" vofrontend_service
+GSI "^\/DC\=org\/DC\=incommon\/C\=US\/ST\=IL\/L\=Batavia\/O\=Fermi\ Research\ Alliance\/OU\=Fermilab\/CN\=(host\/)?([A-Za-z0-9.\-]*)$$" \\2@daemon.opensciencegrid.org
 GSI "^\/DC\=com\/DC\=DigiCert-Grid\/O=Open Science Grid\/OU\=Services\/CN\=(host\/)?([A-Za-z0-9.\-]*)$$" \\2@daemon.opensciencegrid.org
 GSI "^\/DC\=DigiCert-Grid\/DC\=com\/O=Open Science Grid\/OU\=Services\/CN\=(host\/)?([A-Za-z0-9.\-]*)$$" \\2@daemon.opensciencegrid.org
 GSI "^\/DC\=org\/DC\=opensciencegrid\/O=Open Science Grid\/OU\=Services\/CN\=(host\/)?([A-Za-z0-9.\-]*)$$" \\2@daemon.opensciencegrid.org
@@ -264,6 +317,8 @@ def write_htc_map(fname='/etc/condor/certs/condor_mapfile1'):
     HTC_CERTMAP = HTC_CERTMAP1
     if is_osg_certificate():
         HTC_CERTMAP = HTC_CERTMAP2
+    elif is_incommon_certificate():
+        HTC_CERTMAP = HTC_CERTMAP3
     f.write(T(HTC_CERTMAP).substitute(dict(frontend=escape(FRONTEND), factory=escape(FACTORY))))
     f.close()
 
