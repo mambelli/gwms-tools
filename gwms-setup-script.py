@@ -27,7 +27,7 @@ XML_LOG_BAD='<process_log backup_count="5" extension="bad" max_days="7.0" max_mb
 
 XML_COLLECTOR1='<collector DN="/DC=com/DC=DigiCert-Grid/O=Open Science Grid/OU=Services/CN=${factory}" comment="Define factory collector globally for simplicity" factory_identity="gfactory@${factory}" my_identity="vofrontend_service@${factory}" node="${factory}"/>'
 XML_COLLECTOR2='<collector DN="/DC=org/DC=opensciencegrid/O=Open Science Grid/OU=Services/CN=${factory}" comment="Define factory collector globally for simplicity" factory_identity="gfactory@${factory}" my_identity="vofrontend_service@${factory}" node="${factory}"/>'
-XML_COLLECTOR3='<collector DN="/DC=org/DC=incommon/C=US/ST=IL/L=Batavia/O=Fermi Research Alliance/OU=Fermilab/CN=${factory}" comment="Define factory collector globally for simplicity" factory_identity="gfactory@${factory}" my_identity="vofrontend_service@${factory}" node="${factory}"/>'
+XML_COLLECTOR3='<collector DN="/DC=org/DC=incommon/C=US/ST=Illinois/L=Batavia/O=Fermi Research Alliance/OU=Fermilab/CN=${factory}" comment="Define factory collector globally for simplicity" factory_identity="gfactory@${factory}" my_identity="vofrontend_service@${factory}" node="${factory}"/>'
 
 XML_SECURITY1='''    <security classad_proxy="/etc/gwms-frontend/fe_proxy" proxy_DN="/DC=com/DC=DigiCert-Grid/O=Open Science Grid/OU=Services/CN=${frontend}" proxy_selection_plugin="ProxyAll" security_name="vofrontend_service" sym_key="aes_256_cbc">
       <credentials>
@@ -41,7 +41,7 @@ XML_SECURITY2='''    <security classad_proxy="/etc/gwms-frontend/fe_proxy" proxy
       </credentials>
    </security>
 '''
-XML_SECURITY3='''    <security classad_proxy="/etc/gwms-frontend/fe_proxy" proxy_DN="/DC=org/DC=incommon/C=US/ST=IL/L=Batavia/O=Fermi Research Alliance/OU=Fermilab/CN=${frontend}" proxy_selection_plugin="ProxyAll" security_name="vofrontend_service" sym_key="aes_256_cbc">
+XML_SECURITY3='''    <security classad_proxy="/etc/gwms-frontend/fe_proxy" proxy_DN="/DC=org/DC=incommon/C=US/ST=Illinois/L=Batavia/O=Fermi Research Alliance/OU=Fermilab/CN=${frontend}" proxy_selection_plugin="ProxyAll" security_name="vofrontend_service" sym_key="aes_256_cbc">
       <credentials>
          <credential absfname="/etc/gwms-frontend/mm_proxy" security_class="frontend" trust_domain="grid" type="grid_proxy"/>
       </credentials>
@@ -58,16 +58,17 @@ XML_WMS_COLLECTOR2='''   <collectors>
       <collector DN="/DC=org/DC=opensciencegrid/O=Open Science Grid/OU=Services/CN=${frontend}" group="default" node="${frontend}:9620-9660" secondary="True"/>
    </collectors>
 '''
+#/DC=org/DC=incommon/C=US/ST=Illinois/L=Batavia/O=Fermi Research Alliance/OU=Fermilab/CN=fermicloud315.fnal.gov
 XML_WMS_COLLECTOR3='''   <collectors>
-      <collector DN="/DC=org/DC=incommon/C=US/ST=IL/L=Batavia/O=Fermi Research Alliance/OU=Fermilab/CN=${frontend}" group="default" node="${frontend}:9618" secondary="False"/>
-      <collector DN="/DC=org/DC=incommon/C=US/ST=IL/L=Batavia/O=Fermi Research Alliance/OU=Fermilab/CN=${frontend}" group="default" node="${frontend}:9620-9660" secondary="True"/>
+      <collector DN="/DC=org/DC=incommon/C=US/ST=Illinois/L=Batavia/O=Fermi Research Alliance/OU=Fermilab/CN=${frontend}" group="default" node="${frontend}:9618" secondary="False"/>
+      <collector DN="/DC=org/DC=incommon/C=US/ST=Illinois/L=Batavia/O=Fermi Research Alliance/OU=Fermilab/CN=${frontend}" group="default" node="${frontend}:9620-9660" secondary="True"/>
    </collectors>
 '''
 
 
 XML_SCHEDD1='            <schedd DN="/DC=com/DC=DigiCert-Grid/O=Open Science Grid/OU=Services/CN=${frontend}" fullname="${frontend}"/>'
 XML_SCHEDD2='            <schedd DN="/DC=org/DC=opensciencegrid/O=Open Science Grid/OU=Services/CN=${frontend}" fullname="${frontend}"/>'
-XML_SCHEDD3='            <schedd DN="/DC=org/DC=incommon/C=US/ST=IL/L=Batavia/O=Fermi Research Alliance/OU=Fermilab/CN=${frontend}" fullname="${frontend}"/>'
+XML_SCHEDD3='            <schedd DN="/DC=org/DC=incommon/C=US/ST=Illinois/L=Batavia/O=Fermi Research Alliance/OU=Fermilab/CN=${frontend}" fullname="${frontend}"/>'
 
 
 def is_osg_certificate(certfname="/etc/grid-security/hostcert.pem"):
@@ -264,6 +265,7 @@ GSI "^\/DC\=org\/DC\=opensciencegrid\/O\=Open\ Science\ Grid\/OU\=Services\/CN\=
 GSI "^/DC=org/DC=cilogon/C=US/O=Fermi National Accelerator Laboratory/OU=People/CN=Marco Mambelli/CN=UID:marcom" vofrontend_service 
 GSI "^\/DC\=org\/DC\=opensciencegrid\/O\=Open\ Science\ Grid\/OU\=People\/CN\=Marco\ Mambelli\ 247$$" vofrontend_service
 GSI "^\/DC\=org\/DC\=incommon\/C\=US\/ST\=IL\/L\=Batavia\/O\=Fermi\ Research\ Alliance\/OU\=Fermilab\/CN\=(host\/)?([A-Za-z0-9.\-]*)$$" \\2@daemon.opensciencegrid.org
+GSI "^\/DC\=org\/DC\=incommon\/C\=US\/ST\=Illinois\/L\=Batavia\/O\=Fermi\ Research\ Alliance\/OU\=Fermilab\/CN\=(host\/)?([A-Za-z0-9.\-]*)$$" \\2@daemon.opensciencegrid.org
 GSI "^\/DC\=com\/DC\=DigiCert-Grid\/O=Open Science Grid\/OU\=Services\/CN\=(host\/)?([A-Za-z0-9.\-]*)$$" \\2@daemon.opensciencegrid.org
 GSI "^\/DC\=DigiCert-Grid\/DC\=com\/O=Open Science Grid\/OU\=Services\/CN\=(host\/)?([A-Za-z0-9.\-]*)$$" \\2@daemon.opensciencegrid.org
 GSI "^\/DC\=org\/DC\=opensciencegrid\/O=Open Science Grid\/OU\=Services\/CN\=(host\/)?([A-Za-z0-9.\-]*)$$" \\2@daemon.opensciencegrid.org
@@ -274,11 +276,12 @@ GSI "^\/DC\=ch\/DC\=cern\/OU\=computers\/CN\=(host\/)?([A-Za-z0-9.\-]*)$$" \\2@c
 GSI (.*) anonymous
 FS (.*) \\1
 '''
-HTC_CERTMAP3 = '''GSI "^/DC=org/DC=incommon/C=US/ST=IL/L=Batavia/O=Fermi Research Alliance/OU=Fermilab/CN=${frontend}$$" vofrontend_service
-GSI "^/DC=org/DC=incommon/C=US/ST=IL/L=Batavia/O=Fermi Research Alliance/OU=Fermilab/CN=${factory}$$" gfactory
+HTC_CERTMAP3 = '''GSI "^/DC=org/DC=incommon/C=US/ST=Illinois/L=Batavia/O=Fermi Research Alliance/OU=Fermilab/CN=${frontend}$$" vofrontend_service
+GSI "^/DC=org/DC=incommon/C=US/ST=Illinois/L=Batavia/O=Fermi Research Alliance/OU=Fermilab/CN=${factory}$$" gfactory
 GSI "^/DC=org/DC=cilogon/C=US/O=Fermi National Accelerator Laboratory/OU=People/CN=Marco Mambelli/CN=UID:marcom" vofrontend_service 
 GSI "^\/DC\=org\/DC\=opensciencegrid\/O\=Open\ Science\ Grid\/OU\=People\/CN\=Marco\ Mambelli\ 247$$" vofrontend_service
-GSI "^\/DC\=org\/DC\=incommon\/C\=US\/ST\=IL\/L\=Batavia\/O\=Fermi\ Research\ Alliance\/OU\=Fermilab\/CN\=(host\/)?([A-Za-z0-9.\-]*)$$" \\2@daemon.opensciencegrid.org
+GSI "^\/DC\=org\/DC\=incommon\/C\=US\/ST\=Illinois\/L\=Batavia\/O\=Fermi\ Research\ Alliance\/OU\=Fermilab\/CN\=(host\/)?([A-Za-z0-9.\-]*)$$" \\2@daemon.opensciencegrid.org
+GSI "^\/DC\=org\/DC\=incommon\/C\=US\/ST\=IL\/L\=Batavia\/O\=Fermi\ Research\ Alliance\/OU\=Fermilab\/CN\=(host\/)?([A-Za-z0-9.\-]*)$$" \\2@old.daemon.opensciencegrid.org
 GSI "^\/DC\=com\/DC\=DigiCert-Grid\/O=Open Science Grid\/OU\=Services\/CN\=(host\/)?([A-Za-z0-9.\-]*)$$" \\2@daemon.opensciencegrid.org
 GSI "^\/DC\=DigiCert-Grid\/DC\=com\/O=Open Science Grid\/OU\=Services\/CN\=(host\/)?([A-Za-z0-9.\-]*)$$" \\2@daemon.opensciencegrid.org
 GSI "^\/DC\=org\/DC\=opensciencegrid\/O=Open Science Grid\/OU\=Services\/CN\=(host\/)?([A-Za-z0-9.\-]*)$$" \\2@daemon.opensciencegrid.org
@@ -291,13 +294,14 @@ FS (.*) \\1
 '''
 HTC_CERTMAP_ALL = '''GSI "^\/DC\=com\/DC\=DigiCert\-Grid\/O\=Open\ Science\ Grid\/OU\=Services\/CN\=${frontend}$$" vofrontend_service
 GSI "^\/DC\=org\/DC\=opensciencegrid\/O\=Open\ Science\ Grid\/OU\=Services\/CN\=${frontend}$$" vofrontend_service
-GSI "^/DC=org/DC=incommon/C=US/ST=IL/L=Batavia/O=Fermi Research Alliance/OU=Fermilab/CN=${frontend}$$" vofrontend_service
+GSI "^/DC=org/DC=incommon/C=US/ST=Illinois/L=Batavia/O=Fermi Research Alliance/OU=Fermilab/CN=${frontend}$$" vofrontend_service
 GSI "^\/DC\=com\/DC\=DigiCert\-Grid\/O\=Open\ Science\ Grid\/OU\=Services\/CN\=${factory}$$" gfactory
 GSI "^\/DC\=org\/DC\=opensciencegrid\/O\=Open\ Science\ Grid\/OU\=Services\/CN\=${factory}$$" gfactory
-GSI "^/DC=org/DC=incommon/C=US/ST=IL/L=Batavia/O=Fermi Research Alliance/OU=Fermilab/CN=${factory}$$" gfactory
+GSI "^/DC=org/DC=incommon/C=US/ST=Illinois/L=Batavia/O=Fermi Research Alliance/OU=Fermilab/CN=${factory}$$" gfactory
 GSI "^/DC=org/DC=cilogon/C=US/O=Fermi National Accelerator Laboratory/OU=People/CN=Marco Mambelli/CN=UID:marcom" vofrontend_service 
 GSI "^\/DC\=org\/DC\=opensciencegrid\/O\=Open\ Science\ Grid\/OU\=People\/CN\=Marco\ Mambelli\ 247$$" vofrontend_service
-GSI "^\/DC\=org\/DC\=incommon\/C\=US\/ST\=IL\/L\=Batavia\/O\=Fermi\ Research\ Alliance\/OU\=Fermilab\/CN\=(host\/)?([A-Za-z0-9.\-]*)$$" \\2@daemon.opensciencegrid.org
+GSI "^\/DC\=org\/DC\=incommon\/C\=US\/ST\=Illinois\/L\=Batavia\/O\=Fermi\ Research\ Alliance\/OU\=Fermilab\/CN\=(host\/)?([A-Za-z0-9.\-]*)$$" \\2@daemon.opensciencegrid.org
+GSI "^\/DC\=org\/DC\=incommon\/C\=US\/ST\=IL\/L\=Batavia\/O\=Fermi\ Research\ Alliance\/OU\=Fermilab\/CN\=(host\/)?([A-Za-z0-9.\-]*)$$" \\2@old.daemon.opensciencegrid.org
 GSI "^\/DC\=com\/DC\=DigiCert-Grid\/O=Open Science Grid\/OU\=Services\/CN\=(host\/)?([A-Za-z0-9.\-]*)$$" \\2@daemon.opensciencegrid.org
 GSI "^\/DC\=DigiCert-Grid\/DC\=com\/O=Open Science Grid\/OU\=Services\/CN\=(host\/)?([A-Za-z0-9.\-]*)$$" \\2@daemon.opensciencegrid.org
 GSI "^\/DC\=org\/DC\=opensciencegrid\/O=Open Science Grid\/OU\=Services\/CN\=(host\/)?([A-Za-z0-9.\-]*)$$" \\2@daemon.opensciencegrid.org
@@ -323,7 +327,7 @@ def write_htc_map(fname='/etc/condor/certs/condor_mapfile1'):
     f.close()
 
 
-ENTRIES = {'ITB_FC_CE2': """      <entry name="ITB_FC_CE2" auth_method="grid_proxy" enabled="True" gatekeeper="fermicloud025.fnal.gov/jobmanager-condor" gridtype="gt2" rsl="(queue=default)(jobtype=single)" trust_domain="grid" verbosity="std" work_dir="OSG">
+ENTRIES = {'old_ITB_FC_CE2': """      <entry name="ITB_FC_CE2" auth_method="grid_proxy" enabled="True" gatekeeper="fermicloud025.fnal.gov/jobmanager-condor" gridtype="gt2" rsl="(queue=default)(jobtype=single)" trust_domain="grid" verbosity="std" work_dir="OSG">
          <config>
             <max_jobs>
                <default_per_frontend glideins="5000" held="50" idle="100"/>
@@ -356,7 +360,7 @@ ENTRIES = {'ITB_FC_CE2': """      <entry name="ITB_FC_CE2" auth_method="grid_pro
          </monitorgroups>
       </entry>
 """,
-    'ITB_FC_CE3': """      <entry name="ITB_FC_CE3" auth_method="grid_proxy" enabled="True" gatekeeper="fermicloud121.fnal.gov/jobmanager-condor" gridtype="gt2" rsl="(queue=default)(jobtype=single)" trust_domain="grid" verbosity="std" work_dir="OSG">
+'ITB_FC_CE2': """      <entry name="ITB_FC_CE2" auth_method="grid_proxy" enabled="True" gatekeeper="fermicloud025.fnal.gov fermicloud025.fnal.gov:9617" gridtype="condor" rsl="" trust_domain="grid" verbosity="std" work_dir="OSG">
          <config>
             <max_jobs>
                <default_per_frontend glideins="5000" held="50" idle="100"/>
@@ -389,7 +393,73 @@ ENTRIES = {'ITB_FC_CE2': """      <entry name="ITB_FC_CE2" auth_method="grid_pro
          </monitorgroups>
       </entry>
 """,
-    'ITB_FC_CE3x4': """     <entry name="ITB_FC_CE3x4" auth_method="grid_proxy" enabled="True" gatekeeper="fermicloud121.fnal.gov/jobmanager-condor" gridtype="gt2" rsl="(jobtype=single)(xcount=4)" trust_domain="grid" verbosity="std" work_dir="OSG">
+    'old_ITB_FC_CE3': """      <entry name="ITB_FC_CE3" auth_method="grid_proxy" enabled="True" gatekeeper="fermicloud121.fnal.gov/jobmanager-condor" gridtype="gt2" rsl="(queue=default)(jobtype=single)" trust_domain="grid" verbosity="std" work_dir="OSG">
+         <config>
+            <max_jobs>
+               <default_per_frontend glideins="5000" held="50" idle="100"/>
+               <per_entry glideins="10000" held="1000" idle="2000"/>
+               <per_frontends>
+               </per_frontends>
+            </max_jobs>
+            <release max_per_cycle="20" sleep="0.2"/>
+            <remove max_per_cycle="5" sleep="0.2"/>
+            <restrictions require_glidein_glexec_use="False" require_voms_proxy="False"/>
+            <submit cluster_size="10" max_per_cycle="100" sleep="0.2" slots_layout="fixed">
+               <submit_attrs>
+               </submit_attrs>
+            </submit>
+         </config>
+         <allow_frontends>
+         </allow_frontends>
+         <attrs>
+            <attr name="CONDOR_ARCH" const="False" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="default"/>
+            <attr name="CONDOR_OS" const="False" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="rhel6"/>
+            <attr name="GLEXEC_JOB" const="True" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="False"/>
+            <attr name="GLIDEIN_Site" const="True" glidein_publish="True" job_publish="True" parameter="True" publish="True" type="string" value="ITB_FC_CE2"/>
+            <attr name="USE_CCB" const="True" glidein_publish="True" job_publish="False" parameter="True" publish="True" type="string" value="True"/>
+         </attrs>
+         <files>
+         </files>
+         <infosys_refs>
+         </infosys_refs>
+         <monitorgroups>
+         </monitorgroups>
+      </entry>
+""",
+    'ITB_FC_CE3': """      <entry name="ITB_FC_CE3" auth_method="grid_proxy" enabled="True" gatekeeper="fermicloud121.fnal.gov fermicloud121.fnal.gov:9617" gridtype="condor" rsl="" trust_domain="grid" verbosity="std" work_dir="OSG">
+         <config>
+            <max_jobs>
+               <default_per_frontend glideins="5000" held="50" idle="100"/>
+               <per_entry glideins="10000" held="1000" idle="2000"/>
+               <per_frontends>
+               </per_frontends>
+            </max_jobs>
+            <release max_per_cycle="20" sleep="0.2"/>
+            <remove max_per_cycle="5" sleep="0.2"/>
+            <restrictions require_glidein_glexec_use="False" require_voms_proxy="False"/>
+            <submit cluster_size="10" max_per_cycle="100" sleep="0.2" slots_layout="fixed">
+               <submit_attrs>
+               </submit_attrs>
+            </submit>
+         </config>
+         <allow_frontends>
+         </allow_frontends>
+         <attrs>
+            <attr name="CONDOR_ARCH" const="False" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="default"/>
+            <attr name="CONDOR_OS" const="False" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="rhel6"/>
+            <attr name="GLEXEC_JOB" const="True" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="False"/>
+            <attr name="GLIDEIN_Site" const="True" glidein_publish="True" job_publish="True" parameter="True" publish="True" type="string" value="ITB_FC_CE2"/>
+            <attr name="USE_CCB" const="True" glidein_publish="True" job_publish="False" parameter="True" publish="True" type="string" value="True"/>
+         </attrs>
+         <files>
+         </files>
+         <infosys_refs>
+         </infosys_refs>
+         <monitorgroups>
+         </monitorgroups>
+      </entry>
+""",
+    'ITB_FC_CE3x4': """     <entry name="ITB_FC_CE3x4" auth_method="grid_proxy" enabled="True" gatekeeper="fermicloud121.fnal.gov fermicloud121.fnal.gov:9617" gridtype="condor" rsl="" trust_domain="grid" verbosity="std" work_dir="OSG">
          <config>
             <max_jobs>
                <default_per_frontend glideins="5000" held="50" idle="100"/>
@@ -402,6 +472,7 @@ ENTRIES = {'ITB_FC_CE2': """      <entry name="ITB_FC_CE2" auth_method="grid_pro
             <restrictions require_glidein_glexec_use="False" require_voms_proxy="False"/>
             <submit cluster_size="10" max_per_cycle="100" sleep="0.2" slots_layout="partitionable">
                <submit_attrs>
+                  <submit_attr name="+xcount" value="4"/>     
                </submit_attrs>
             </submit>
          </config>
@@ -627,7 +698,7 @@ if __name__ == "__main__":
     if sys.argv[1]=='-a':
         factory_add(sys.argv[2])
     elif sys.argv[1]=='-d':
-        factory_delete(sys.argv[2])
+        factory_remove(sys.argv[2])
     elif sys.argv[1]=='-l':
         factory_list()
     else:
