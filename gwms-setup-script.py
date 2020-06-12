@@ -97,11 +97,14 @@ def is_incommon_certificate(certfname="/etc/grid-security/hostcert.pem"):
 
 HTC_TARBALLS = """   <condor_tarballs>
       <condor_tarball arch="default" base_dir="/usr" os="default" version="default"/>
-      <condor_tarball arch="default" base_dir="/var/lib/gwms-factory/condor/condor-8.4.0-x86_64_RedHat7-stripped" os="rhel7" version="default"/>
-      <condor_tarball arch="default" base_dir="/var/lib/gwms-factory/condor/condor-8.4.0-x86_64_RedHat6-stripped" os="rhel6" version="default"/> 
+      <condor_tarball arch="default" base_dir="/var/lib/gwms-factory/condor/condor-8.9.7-x86_64_CentOS7-unstripped" os="rhel7" version="8.9"/>
+      <condor_tarball arch="default" base_dir="/var/lib/gwms-factory/condor/condor-8.9.7-x86_64_CentOS8-unstripped" os="rhel8" version="8.9"/> 
+      <condor_tarball arch="default" base_dir="/var/lib/gwms-factory/condor/condor-8.8.9-x86_64_CentOS7-stripped" os="rhel7" version="default"/>
+      <condor_tarball arch="default" base_dir="/var/lib/gwms-factory/condor/condor-8.8.9-x86_64_CentOS8-stripped" os="rhel8" version="default"/> 
+      <condor_tarball arch="default" base_dir="/var/lib/gwms-factory/condor/condor-8.8.9-x86_64_RedHat6-stripped" os="rhel6" version="default"/> 
+      <condor_tarball arch="default" base_dir="/var/lib/gwms-factory/condor/condor-8.4.0-x86_64_RedHat7-stripped" os="rhel7" version="8.4.0"/>
+      <condor_tarball arch="default" base_dir="/var/lib/gwms-factory/condor/condor-8.4.0-x86_64_RedHat6-stripped" os="rhel6" version="8.4.0"/> 
       <condor_tarball arch="x86" base_dir="/var/lib/gwms-factory/condor/condor-8.4.0-x86_RedHat6-stripped" os="rhel6" version="default"/> 
-      <condor_tarball arch="default" base_dir="/var/lib/gwms-factory/condor/condor-8.8.2-x86_64_RedHat7-stripped" os="rhel7" version="8.8.2"/>
-      <condor_tarball arch="default" base_dir="/var/lib/gwms-factory/condor/condor-8.8.2-x86_64_RedHat6-stripped" os="rhel6" version="8.8.2"/> 
       <condor_tarball arch="default" base_dir="/var/lib/gwms-factory/condor/condor-8.2.6-x86_64_RedHat5-stripped" os="rhel5" version="8.2.6"/>
       <condor_tarball arch="default" base_dir="/var/lib/gwms-factory/condor/condor-8.2.6-x86_64_RedHat6-stripped" os="rhel6" version="8.2.6"/> 
    </condor_tarballs>
@@ -380,7 +383,7 @@ ENTRIES = {'old_ITB_FC_CE2': """      <entry name="ITB_FC_CE2" auth_method="grid
          </allow_frontends>
          <attrs>
             <attr name="CONDOR_ARCH" const="False" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="default"/>
-            <attr name="CONDOR_OS" const="False" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="rhel6"/>
+            <attr name="CONDOR_OS" const="False" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="rhel7"/>
             <attr name="GLEXEC_JOB" const="True" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="False"/>
             <attr name="GLIDEIN_Site" const="True" glidein_publish="True" job_publish="True" parameter="True" publish="True" type="string" value="ITB_FC_CE2"/>
             <attr name="USE_CCB" const="True" glidein_publish="True" job_publish="False" parameter="True" publish="True" type="string" value="True"/>
@@ -446,7 +449,7 @@ ENTRIES = {'old_ITB_FC_CE2': """      <entry name="ITB_FC_CE2" auth_method="grid
          </allow_frontends>
          <attrs>
             <attr name="CONDOR_ARCH" const="False" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="default"/>
-            <attr name="CONDOR_OS" const="False" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="rhel6"/>
+            <attr name="CONDOR_OS" const="False" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="rhel7"/>
             <attr name="GLEXEC_JOB" const="True" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="False"/>
             <attr name="GLIDEIN_Site" const="True" glidein_publish="True" job_publish="True" parameter="True" publish="True" type="string" value="ITB_FC_CE2"/>
             <attr name="USE_CCB" const="True" glidein_publish="True" job_publish="False" parameter="True" publish="True" type="string" value="True"/>
@@ -480,7 +483,7 @@ ENTRIES = {'old_ITB_FC_CE2': """      <entry name="ITB_FC_CE2" auth_method="grid
          </allow_frontends>
          <attrs>
             <attr name="CONDOR_ARCH" const="False" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="default"/>
-            <attr name="CONDOR_OS" const="False" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="rhel6"/>
+            <attr name="CONDOR_OS" const="False" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="rhel7"/>
             <attr name="GLEXEC_JOB" const="True" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="False"/>
             <attr name="GLIDEIN_Site" const="True" glidein_publish="True" job_publish="True" parameter="True" publish="True" type="string" value="ITB_FC_CE3x4"/>
             <attr name="USE_CCB" const="True" glidein_publish="True" job_publish="False" parameter="True" publish="True" type="string" value="True"/>
@@ -667,7 +670,7 @@ ENTRIES = {'old_ITB_FC_CE2': """      <entry name="ITB_FC_CE2" auth_method="grid
          <attrs>
             <attr const="True" glidein_publish="True" job_publish="False" name="GLIDEIN_SINGULARITY_REQUIRE" parameter="True" publish="True" type="string" value="PREFERRED" />
             <attr const="False" glidein_publish="False" job_publish="False" name="CONDOR_ARCH" parameter="True" publish="True" type="string" value="default" />
-            <attr const="False" glidein_publish="False" job_publish="False" name="CONDOR_OS" parameter="True" publish="True" type="string" value="rhel6" />
+            <attr const="False" glidein_publish="False" job_publish="False" name="CONDOR_OS" parameter="True" publish="True" type="string" value="rhel7" />
             <attr const="True" glidein_publish="False" job_publish="False" name="GLEXEC_JOB" parameter="True" publish="True" type="string" value="False" />
             <attr const="True" glidein_publish="True" job_publish="True" name="GLIDEIN_Site" parameter="True" publish="True" type="string" value="ITB_FC_SIN_CE1" />
             <attr const="True" glidein_publish="True" job_publish="True" name="GLIDEIN_CPUS" parameter="True" publish="True" type="string" value="1" />
