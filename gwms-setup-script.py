@@ -363,7 +363,7 @@ ENTRIES = {'old_ITB_FC_CE2': """      <entry name="ITB_FC_CE2" auth_method="grid
          </monitorgroups>
       </entry>
 """,
-'ITB_FC_CE2': """      <entry name="ITB_FC_CE2" auth_method="grid_proxy" enabled="True" gatekeeper="fermicloud025.fnal.gov fermicloud025.fnal.gov:9617" gridtype="condor" rsl="" trust_domain="grid" verbosity="std" work_dir="OSG">
+'ITB_FC_CE2': """      <entry name="ITB_FC_CE2" auth_method="grid_proxy" enabled="True" gatekeeper="fermicloud025.fnal.gov fermicloud025.fnal.gov:9619" gridtype="condor" rsl="" trust_domain="grid" verbosity="std" work_dir="OSG">
          <config>
             <max_jobs>
                <default_per_frontend glideins="5000" held="50" idle="100"/>
@@ -429,7 +429,7 @@ ENTRIES = {'old_ITB_FC_CE2': """      <entry name="ITB_FC_CE2" auth_method="grid
          </monitorgroups>
       </entry>
 """,
-    'ITB_FC_CE3': """      <entry name="ITB_FC_CE3" auth_method="grid_proxy" enabled="True" gatekeeper="fermicloud121.fnal.gov fermicloud121.fnal.gov:9617" gridtype="condor" rsl="" trust_domain="grid" verbosity="std" work_dir="OSG">
+    'ITB_FC_CE3': """      <entry name="ITB_FC_CE3" auth_method="grid_proxy" enabled="True" gatekeeper="fermicloud121.fnal.gov fermicloud121.fnal.gov:9619" gridtype="condor" rsl="" trust_domain="grid" verbosity="std" work_dir="OSG">
          <config>
             <max_jobs>
                <default_per_frontend glideins="5000" held="50" idle="100"/>
