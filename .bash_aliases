@@ -6,10 +6,13 @@ alias cpv='rsync -ah --info=progress2'
 alias ve='python3 -m venv ./venv'
 alias va='source ./venv/bin/activate'
 alias dfh='df -h -T hfs,apfs,exfat,ntfs,noowners'
-# fermicloud
+
+## For laptop
+# Fermicloud
 #alias fclrefreshhosts="ssh -K marcom@fermicloudui.fnal.gov  '. /etc/profile.d/one4x.sh; . /etc/profile.d/one4x_user_credentials.sh; ~marcom/bin/myhosts' > ~/.bashcache/fclhosts"
 alias fclrefreshhosts="ssh -K marcom@fermicloudui.fnal.gov  '~marcom/bin/myhosts -r' > ~/.bashcache/fclhosts"
 alias fclhosts='cat ~/.bashcache/fclhosts'
+alias fclinit='ssh-init-host'
 alias fclui='ssh marcom@fermicloudui.fnal.gov'
 alias fclvofrontend='ssh root@gwms-dev-frontend.fnal.gov'
 alias fclfactory='ssh root@gwms-dev-factory.fnal.gov'
@@ -22,8 +25,40 @@ alias fcl025='ssh root@fermicloud025.fnal.gov'
 # git
 alias cg='cd `git rev-parse --show-toplevel`'
 
+## For fermicloud hosts
+# GWMS log files
+alias gvmain='less /var/log/gwms-frontend/group_main/main.all.log'
+alias gvfe='less /var/log/gwms-frontend/frontend/frontend.all.log'
+alias gvfa='less /var/log/gwms-factory/server/factory/factory.all.log'
+alias gvg0='less /var/log/gwms-factory/server/factory/group_0.all.log'
+# HTCondor CondorView some log file, CondorCommand...
+alias cvcoll='less /var/log/condor/CollectorLog'
+alias cvsched='less /var/log/condor/SchedLog'
+alias cvmaster='less /var/log/condor/MasterLog'
+alias cvgm='less /var/log/condor/GridManagerLog.schedd_glideins*'
+alias cvcerts='less /etc/condor/certs/condor_mapfile'
+alias ccs='condor_status -any'
+alias ccsf='condor_status -any -af MyType Name'
+alias ccq='condor_q -globali -all'
+#alias ccql='htc_foreach_schedd condor_q -af ClusterId ProcId GlideinEntryName GlideinClient JobStatus Cmd -name'
+alias ccql='htc_foreach_schedd -f1 condor_q -all -af ClusterId ProcId GlideinEntryName GlideinClient JobStatus Cmd -name'
+alias ccqlv='htc_foreach_schedd -v -f1 condor_q -all -af ClusterId ProcId GlideinEntryName GlideinClient JobStatus Cmd -name'
+alias ccrm='condor_rm -all -name'
+alias ccrma='htc_foreach_schedd condor_rm -all -name'
 
-## functions
+## These are for root on fermicloud hosts
+# GWMS manage
+alias festart='/bin/systemctl start gwms-frontend'
+alias festop='/bin/systemctl stop gwms-frontend'
+alias fereconfig='/bin/systemctl stop gwms-frontend; /usr/sbin/gwms-frontend reconfig; /bin/systemctl start gwms-frontend'
+alias feupgrade='/bin/systemctl stop gwms-frontend; /usr/sbin/gwms-frontend upgrade; /bin/systemctl start gwms-frontend'
+alias fastart='/bin/systemctl start gwms-factory'
+alias fastop='/bin/systemctl stop gwms-factory'
+alias faupgrade='/bin/systemctl stop gwms-factory; /usr/sbin/gwms-factory upgrade ; /bin/systemctl start gwms-factory'
+alias fareconfig='/bin/systemctl stop gwms-factory; /usr/sbin/gwms-factory reconfig; /bin/systemctl start gwms-factory'
+
+
+## Functions
 cl() {
   DIR="$*";
   [ $# -lt 1 ] && DIR=$HOME
@@ -31,6 +66,8 @@ cl() {
 }
 
 ssh-last() {
+  # return the full hostname of the last host of the requested type (or do partial name matches), optionally ssh to it
+  # valid types: fact, factory, vofe, frontend, vofrontend, web, ce (fermicloud025), INT (fermicloudINT)
   local dossh=false
   local asroot=false
   if [ "$1" = "ssh" ]; then
@@ -61,6 +98,14 @@ ssh-last() {
   fi
 }
 
+ssh-init-host() {
+  # init a fermicloud node
+  local hname=$(ssh-last $1)
+  local huser=${2:-root}
+  echo "Initializing ${huser}@${hname}"
+  scp "$HOME"/prog/repos/git-gwms/gwms-tools/.bash_aliases ${huser}@${hname}: >/dev/null && ssh ${huser}@${hname}  ". .bash_aliases && aliases-update"
+}
+
 fcl-fe-certs() {
   [[ $(id -u) -ne 0 ]] && { echo "must run as root"; return 1; }
   local pilot_proxy=$1
@@ -82,21 +127,83 @@ fcl-fe-certs() {
 
 aliases-update() {
   [ -e "$HOME/.bash_aliases" ] && cp "$HOME"/.bash_aliases "$HOME"/.bash_aliases.bck
-  curl -L -o $HOME/.bash_aliases https://raw.githubusercontent.com/mambelli/gwms-tools/master/.bash_aliases
-  if ! grep "# Added by alias-update" $HOME/.bash_profile; then
-    cat >> $HOME/.bash_profile << EOF
+  if ! curl -L -o $HOME/.bash_aliases https://raw.githubusercontent.com/mambelli/gwms-tools/master/.bash_aliases 2>/dev/null; then
+    echo "Download from github.com failed. Update failed."
+    return 1
+  fi
+  if ! grep "# Added by alias-update" $HOME/.bashrc >/dev/null; then
+    cat >> $HOME/.bashrc << EOF
 # Added by alias-update
-export PATH="$PATH:$HOME/bin"
-if [ -e $HOME/.bash_aliases ]; then
-  source $HOME/.bash_aliases
+export PATH="\$PATH:\$HOME/bin"
+if [ -e \$HOME/.bash_aliases ]; then
+  source \$HOME/.bash_aliases
 fi
 # End from alias-update
 EOF
   fi
   # copy also some binaries
+  mkdir -p "$HOME"/bin
   for i in gwms-clean-logs.sh gwms-setup-script.py gwms-what.sh gwms-check-proxies.sh ; do
-    curl -L -o $HOME/bin/$i https://raw.githubusercontent.com/mambelli/gwms-tools/master/$i
-    chmod +x $HOME/bin/$i
+    curl -L -o $HOME/bin/$i https://raw.githubusercontent.com/mambelli/gwms-tools/master/$i 2>/dev/null && chmod +x $HOME/bin/$i
   done
   . $HOME/.bash_aliases
 }
+
+# HTC functions
+htc_job_status() {
+  local htc_short=true
+  if $htc_short; then
+    case $1 in
+    0)  echo U;;
+    1)  echo  I;;
+    2)  echo  R;;
+    3)  echo  X;;
+    4)  echo  C;;
+    5)  echo  H;;
+    6)  echo  E;;
+    esac
+  else
+    case $1 in
+    0)  echo Unexpanded;;
+    1)  echo  Idle;;
+    2)  echo  Running;;
+    3)  echo  Removed;;
+    4)  echo  Completed;;
+    5)  echo  Held;;
+    6)  echo  Submission_err;;
+    esac
+  fi
+}
+
+htc_filter1() {
+  while read -r a b c d e rest; do
+    if [[ "$a" == "#"* ]]; then
+      echo "$a $b $c $d $e $rest"
+    else
+      printf '%i.%i\t%s %s %s %s\n' "$a" "$b" "$c" "${d%%-fn*}" "$(htc_job_status "$e")" "$rest"
+    fi
+  done
+}
+
+htc_foreach_schedd() {
+  local verbose=false
+  local filter=
+  if [[ "$1" = "-v" ]]; then
+    verbose=true
+    shift
+  fi
+  if [[ "$1" = "-f1" ]]; then
+    filter=htc_filter1
+    shift
+  fi
+  local sc_list="$(condor_status -schedd -af Name)"
+  for i in $sc_list; do
+    $verbose && echo "# $i"
+    if [[ -z "$filter" ]]; then
+      "$@" $i
+    else
+      "$@" $i | $filter
+    fi
+  done
+}
+
