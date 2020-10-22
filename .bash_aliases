@@ -1,3 +1,4 @@
+# Remember, alias are only interactive, not in scriupts w/o: shopt -s expand_aliases
 #alias mvim="/Applications/MacVim.app/contents/MacOS/MacVim"
 alias mvim="open -a MacVim.app $@"
 #alias lt='ls --human-readable --size'
@@ -6,6 +7,17 @@ alias cpv='rsync -ah --info=progress2'
 alias ve='python3 -m venv ./venv'
 alias va='source ./venv/bin/activate'
 alias dfh='df -h -T hfs,apfs,exfat,ntfs,noowners'
+# git
+alias cg='cd `git rev-parse --show-toplevel`'
+alias cdgwms='cd prog/repos/git-gwms/'
+alias cdm='cd-with-memory'
+alias pushdm='cd-with-memory pushd'
+alias infoalias='
+echo -e "Aliases defined:\n General: lt cpv ve va dfh cl cdm pushdm cg"
+echo " To connect to fermicloud: fcl... slv slf sgweb fcl-fe-certs"
+echo " GWMS: gv.. fe.. fa.."
+echo " HTCondor: cv.. cc.. htc_.."
+'
 
 ## For laptop
 # Fermicloud
@@ -22,8 +34,6 @@ alias slf='ssh-last ssh root factory'
 alias fcl='ssh-last ssh root'
 alias fcl025='ssh root@fermicloud025.fnal.gov' 
 #alias sgweb='ssh root@gwms-web.fnal.gov'
-# git
-alias cg='cd `git rev-parse --show-toplevel`'
 
 ## For fermicloud hosts
 # GWMS log files
@@ -60,9 +70,36 @@ alias fareconfig='/bin/systemctl stop gwms-factory; /usr/sbin/gwms-factory recon
 
 ## Functions
 cl() {
+  # cd and list files
   DIR="$*";
   [ $# -lt 1 ] && DIR=$HOME
   builtin cd "${DIR}" && ls -F --color=auto
+}
+
+cd-with-memory() {
+  # use cd or pushd and record the directory in bash_aliases_aux BA_LASTDIR
+  local cmd=cd
+  if [[ "$1" = pushd ]]; then
+    cmd=pushd
+    shift
+  fi
+  [ ! -e ~/.bash_aliases_aux ] && touch ~/.bash_aliases_aux
+  if [ -n "$1" ]; then
+    grep -v "^BA_LASTDIR=" ~/.bash_aliases_aux > ~/.bash_aliases_aux.new
+    echo "BA_LASTDIR=\"$1\"" >> ~/.bash_aliases_aux.new
+    mv ~/.bash_aliases_aux.new ~/.bash_aliases_aux
+    $cmd "$1"
+  else
+    . ~/.bash_aliases_aux
+    local lastdir=${BA_LASTDIR}
+    if [ -n "$lastdir" ]; then
+      [ "$cmd" = cd ] && echo "cd to $lastdir"
+      $cmd "$lastdir"
+    else
+      echo "No last dir available"
+      false
+    fi
+  fi
 }
 
 ssh-last() {
@@ -122,7 +159,13 @@ fcl-fe-certs() {
   chown frontend: /etc/gwms-frontend/*
   # Check all proxies
   echo "Proxy renewed (/etc/gwms-frontend/vo_proxy, /etc/gwms-frontend/mm_proxy), now checking..."
-  ~marcom/bin/check-proxies
+  if command -v gwms-check-proxies.sh >/dev/null; then
+    gwms-check-proxies.sh
+  elif [ -x ~marcom/bin/gwms-check-proxies.sh ]; then
+    ~marcom/bin/gwms-check-proxies.sh
+  else
+    echo "No gwms-check-proxies found"
+  fi
 }
 
 aliases-update() {
