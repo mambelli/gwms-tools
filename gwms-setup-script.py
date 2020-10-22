@@ -102,14 +102,17 @@ HTC_TARBALLS = """   <condor_tarballs>
       <condor_tarball arch="default" base_dir="/var/lib/gwms-factory/condor/condor-8.8.9-x86_64_CentOS7-stripped" os="rhel7" version="default"/>
       <condor_tarball arch="default" base_dir="/var/lib/gwms-factory/condor/condor-8.8.9-x86_64_CentOS8-stripped" os="rhel8" version="default"/> 
       <condor_tarball arch="default" base_dir="/var/lib/gwms-factory/condor/condor-8.8.9-x86_64_RedHat6-stripped" os="rhel6" version="default"/> 
+  </condor_tarballs>
+"""
+
+# to add back for RHEL6 nodes
+"""
       <condor_tarball arch="default" base_dir="/var/lib/gwms-factory/condor/condor-8.4.0-x86_64_RedHat7-stripped" os="rhel7" version="8.4.0"/>
       <condor_tarball arch="default" base_dir="/var/lib/gwms-factory/condor/condor-8.4.0-x86_64_RedHat6-stripped" os="rhel6" version="8.4.0"/> 
       <condor_tarball arch="x86" base_dir="/var/lib/gwms-factory/condor/condor-8.4.0-x86_RedHat6-stripped" os="rhel6" version="default"/> 
       <condor_tarball arch="default" base_dir="/var/lib/gwms-factory/condor/condor-8.2.6-x86_64_RedHat5-stripped" os="rhel5" version="8.2.6"/>
       <condor_tarball arch="default" base_dir="/var/lib/gwms-factory/condor/condor-8.2.6-x86_64_RedHat6-stripped" os="rhel6" version="8.2.6"/> 
-   </condor_tarballs>
-"""
-
+ """
 
 def factory_config1(fname='/etc/gwms-factory/glideinWMS.xml', entries=['ITB_FC_CE2', 'ITB_FC_CE3']):
     """Reconfig the factory
@@ -692,7 +695,7 @@ ENTRIES = {'old_ITB_FC_CE2': """      <entry name="ITB_FC_CE2" auth_method="grid
 
 if __name__ == "__main__":
     if len(sys.argv) != 3:
-        print "%s factory# frontend#   : setup used in installation, do not run it multiple times" % sys.argv[0]
+        print "%s factory# frontend#   : number or full hostname (no domain). setup used in installation, do not run it multiple times" % sys.argv[0]
         print "%s -a ENTRY_NAME        : add an entry" % sys.argv[0]
         print "%s -d ENTRY_NAME        : remove an entry" % sys.argv[0]
         print "%s -l entries           : list current entries (available and in factory)" % sys.argv[0]
@@ -708,8 +711,16 @@ if __name__ == "__main__":
         special_command=False
     if special_command:
         exit(0) 
-    FACTORY='fermicloud%s.fnal.gov' % sys.argv[1]
-    FRONTEND='fermicloud%s.fnal.gov' % sys.argv[2]
+    try:
+        FACTORY_INT=int(sys.argv[1])
+        FACTORY='fermicloud%s.fnal.gov' % sys.argv[1]
+    except:
+        FACTORY='%s.fnal.gov' % sys.argv[1]
+    try:
+        FRONTEND_INT=int(sys.argv[2])
+        FRONTEND='fermicloud%s.fnal.gov' % sys.argv[2]
+    except:
+        FRONTEND='%s.fnal.gov' % sys.argv[2]
     fname='/etc/gwms-frontend/frontend.xml'
     if os.path.isfile(fname):
         print "Configuring frontend (%s). Frontend host %s, factory %s. New file: %s.new" % (fname, FRONTEND, FACTORY, fname)
