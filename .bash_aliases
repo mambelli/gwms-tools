@@ -62,6 +62,7 @@ alias festart='/bin/systemctl start gwms-frontend'
 alias festop='/bin/systemctl stop gwms-frontend'
 alias fereconfig='/bin/systemctl stop gwms-frontend; /usr/sbin/gwms-frontend reconfig; /bin/systemctl start gwms-frontend'
 alias feupgrade='/bin/systemctl stop gwms-frontend; /usr/sbin/gwms-frontend upgrade; /bin/systemctl start gwms-frontend'
+alias festest='su -c "cd condor-test/; condor_submit test-vanilla.sub" -'
 alias fastart='/bin/systemctl start gwms-factory'
 alias fastop='/bin/systemctl stop gwms-factory'
 alias faupgrade='/bin/systemctl stop gwms-factory; /usr/sbin/gwms-factory upgrade ; /bin/systemctl start gwms-factory'
@@ -74,6 +75,17 @@ cl() {
   DIR="$*";
   [ $# -lt 1 ] && DIR=$HOME
   builtin cd "${DIR}" && ls -F --color=auto
+}
+
+gwms-test-jobs() {
+  local juser=${1:-marcom}
+  local job=${2:-test-vanilla.sub}
+  if [ $(id -u) -eq 0 ]; then
+    su -c "cd condor-test/; condor_submit $job" - $juser
+  else
+    [[ "$PWD" = */condor-test ]] || cd condor-test/
+    condor_submit $job
+  fi
 }
 
 cd-with-memory() {
@@ -169,7 +181,7 @@ fcl-fe-certs() {
 }
 
 aliases-update() {
-  [ -e "$HOME/.bash_aliases" ] && cp -f "$HOME"/.bash_aliases "$HOME"/.bash_aliases.bck
+  [ -e "$HOME/.bash_aliases" ] && command cp -f "$HOME"/.bash_aliases "$HOME"/.bash_aliases.bck
   if ! curl -L -o $HOME/.bash_aliases https://raw.githubusercontent.com/mambelli/gwms-tools/master/.bash_aliases 2>/dev/null; then
     echo "Download from github.com failed. Update failed."
     return 1
