@@ -96,6 +96,7 @@ EOF
   # copy also some binaries
   for i in gwms-clean-logs.sh gwms-setup-script.py gwms-what.sh gwms-check-proxies.sh ; do
     curl -L -o $HOME/bin/$i https://raw.githubusercontent.com/mambelli/gwms-tools/master/$i
+    chmod +x $HOME/bin/$i
   done
   . $HOME/.bash_aliases
 }
