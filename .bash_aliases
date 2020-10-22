@@ -49,10 +49,10 @@ alias cvgm='less /var/log/condor/GridManagerLog.schedd_glideins*'
 alias cvcerts='less /etc/condor/certs/condor_mapfile'
 alias ccs='condor_status -any'
 alias ccsf='condor_status -any -af MyType Name'
-alias ccq='condor_q -globali -all'
+alias ccq='condor_q -global -allusers'
 #alias ccql='htc_foreach_schedd condor_q -af ClusterId ProcId GlideinEntryName GlideinClient JobStatus Cmd -name'
-alias ccql='htc_foreach_schedd -f1 condor_q -all -af ClusterId ProcId GlideinEntryName GlideinClient JobStatus Cmd -name'
-alias ccqlv='htc_foreach_schedd -v -f1 condor_q -all -af ClusterId ProcId GlideinEntryName GlideinClient JobStatus Cmd -name'
+alias ccql='htc_foreach_schedd -f1 condor_q -allusers -af ClusterId ProcId GlideinEntryName GlideinClient JobStatus Cmd -name'
+alias ccqlv='htc_foreach_schedd -v -f1 condor_q -allusers -af ClusterId ProcId GlideinEntryName GlideinClient JobStatus Cmd -name'
 alias ccrm='condor_rm -all -name'
 alias ccrma='htc_foreach_schedd condor_rm -all -name'
 
@@ -169,7 +169,7 @@ fcl-fe-certs() {
 }
 
 aliases-update() {
-  [ -e "$HOME/.bash_aliases" ] && cp "$HOME"/.bash_aliases "$HOME"/.bash_aliases.bck
+  [ -e "$HOME/.bash_aliases" ] && cp -f "$HOME"/.bash_aliases "$HOME"/.bash_aliases.bck
   if ! curl -L -o $HOME/.bash_aliases https://raw.githubusercontent.com/mambelli/gwms-tools/master/.bash_aliases 2>/dev/null; then
     echo "Download from github.com failed. Update failed."
     return 1
