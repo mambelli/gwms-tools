@@ -24,7 +24,7 @@ if [[ -e /etc/gwms-factory ]]; then
   faver=$(yum list installed glideinwms-factory | grep factory | xargs echo | cut -d ' ' -f 2)
   echo "Found GWMS Factory (/etc/gwms-factory), version $faver"
 fi
-if [[ -e /etc/gwms-farontend ]]; then
+if [[ -e /etc/gwms-frontend ]]; then
   isfrontend=true
   fever=$(yum list installed glideinwms-vofrontend | grep vofrontend | xargs echo | cut -d ' ' -f 2)
   echo "Found GWMS VO Frontend (/etc/gwms-frontend), version $fever"
