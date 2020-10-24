@@ -62,7 +62,7 @@ alias festart='/bin/systemctl start gwms-frontend'
 alias festop='/bin/systemctl stop gwms-frontend'
 alias fereconfig='/bin/systemctl stop gwms-frontend; /usr/sbin/gwms-frontend reconfig; /bin/systemctl start gwms-frontend'
 alias feupgrade='/bin/systemctl stop gwms-frontend; /usr/sbin/gwms-frontend upgrade; /bin/systemctl start gwms-frontend'
-alias festest='su -c "cd condor-test/; condor_submit test-vanilla.sub" -'
+alias fetest='su -c "cd condor-test/; condor_submit test-vanilla.sub" -'
 alias fastart='/bin/systemctl start gwms-factory'
 alias fastop='/bin/systemctl stop gwms-factory'
 alias faupgrade='/bin/systemctl stop gwms-factory; /usr/sbin/gwms-factory upgrade ; /bin/systemctl start gwms-factory'
@@ -99,7 +99,7 @@ cd-with-memory() {
   if [ -n "$1" ]; then
     grep -v "^BA_LASTDIR=" ~/.bash_aliases_aux > ~/.bash_aliases_aux.new
     echo "BA_LASTDIR=\"$1\"" >> ~/.bash_aliases_aux.new
-    mv ~/.bash_aliases_aux.new ~/.bash_aliases_aux
+    command mv ~/.bash_aliases_aux.new ~/.bash_aliases_aux
     $cmd "$1"
   else
     . ~/.bash_aliases_aux
