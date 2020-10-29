@@ -8,6 +8,7 @@ alias ve='python3 -m venv ./venv'
 alias va='source ./venv/bin/activate'
 alias dfh='df -h -T hfs,apfs,exfat,ntfs,noowners'
 # git
+alias gpo='git push origin'
 alias cg='cd `git rev-parse --show-toplevel`'
 alias cdgwms='cd prog/repos/git-gwms/'
 alias cdm='cd-with-memory'
@@ -77,14 +78,17 @@ cl() {
   builtin cd "${DIR}" && ls -F --color=auto
 }
 
-gwms-test-jobs() {
+gwms-test-job() {
+  [[ "$1" = "-h" ]] && { echo -e "gwms-test-job [-h | USER [-l | SUBMIT_FILE]]\nSubmitting condor jobs from the USER's ~/condor-test/ directory"; return; }
   local juser=${1:-marcom}
+  [[ "$2" = "-l" ]] && { su -c "cd condor-test/; ls *sub" - $juser; return; }
   local job=${2:-test-vanilla.sub}
   if [ $(id -u) -eq 0 ]; then
-    su -c "cd condor-test/; condor_submit $job" - $juser
+    local juserdir=$(eval echo "~$juser")
+    [[ -e "$job" || -e ${juserdir}/condor-test/$job ]] && su -c "cd ${juserdir}/condor-test/; condor_submit $job" - $juser || su -c "cd ${juserdir}/condor-test/; ls *${job}*" - $juser
   else
     [[ "$PWD" = */condor-test ]] || cd condor-test/
-    condor_submit $job
+    [[ -e "$job" ]] && condor_submit $job || ls *${job}*
   fi
 }
 
@@ -156,6 +160,9 @@ ssh-init-host() {
 }
 
 fcl-fe-certs() {
+  # 1. pilot proxy path or file name (default: /etc/gwms-frontend/mm_proxy)
+  # some checks to avoid running as regular user or on a host that is not the frontend
+  command -v voms-proxy-init  >/dev/null || { echo "voms-proxy-init not found. aborting"; return 1; }
   [[ $(id -u) -ne 0 ]] && { echo "must run as root"; return 1; }
   local pilot_proxy=$1
   [[ -n "$pilot_proxy" ]] && pilot_proxy=/etc/gwms-frontend/mm_proxy
