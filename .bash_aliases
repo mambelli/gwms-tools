@@ -15,7 +15,7 @@ alias cdm='cd-with-memory'
 alias pushdm='cd-with-memory pushd'
 alias infoalias='
 echo -e "Aliases defined:\n General: lt cpv ve va dfh cl cdm pushdm cg"
-echo " To connect to fermicloud: fcl... slv slf sgweb fcl-fe-certs"
+echo " To connect to fermicloud: fcl... slv slf sgweb fcl-fe-certs (proxy-creds renewal)"
 echo " GWMS: gv.. fe.. fa.."
 echo " HTCondor: cv.. cc.. htc_.."
 '
@@ -63,6 +63,7 @@ alias festart='/bin/systemctl start gwms-frontend'
 alias festop='/bin/systemctl stop gwms-frontend'
 alias fereconfig='/bin/systemctl stop gwms-frontend; /usr/sbin/gwms-frontend reconfig; /bin/systemctl start gwms-frontend'
 alias feupgrade='/bin/systemctl stop gwms-frontend; /usr/sbin/gwms-frontend upgrade; /bin/systemctl start gwms-frontend'
+alias fecredrenewal='fcl-fe-certs'  # alias to make it easy to find - renew proxy from certs/creds
 alias fetest='su -c "cd condor-test/; condor_submit test-vanilla.sub" -'
 alias fastart='/bin/systemctl start gwms-factory'
 alias fastop='/bin/systemctl stop gwms-factory'
@@ -139,7 +140,7 @@ ssh-last() {
   [ "$sel" == "ce" ] && sel=fermicloud025
   [[ "$sel" =~ ^[0-9]+$ ]] && sel="fermicloud$sel"
   myhost=$(grep "$sel" ~/.bashcache/fclhosts | tail -n 1 | cut -d ' ' -f 3 )
-  [ -z "$myhost" ] && { echo "Host $1 ($sel) not found on fermiclooud list."; exit 1; }
+  [ -z "$myhost" ] && { echo "Host $1 ($sel) not found on fermiclooud list."; return 1; }
   shift
   echo $myhost
   if $dossh; then
