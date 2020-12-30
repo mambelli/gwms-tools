@@ -9,24 +9,29 @@ alias va='source ./venv/bin/activate'
 alias dfh='df -h -T hfs,apfs,exfat,ntfs,noowners'
 # git
 alias gpo='git push origin'
+alias gitmodified="git status | grep modified | awk '{print \$2}' | tr $'\n' ' '"
 alias cg='cd `git rev-parse --show-toplevel`'
 alias cdgwms='cd prog/repos/git-gwms/'
 alias cdm='cd-with-memory'
 alias pushdm='cd-with-memory pushd'
+alias dictlist='curl dict://dict.org/show:db'
 alias infoalias='
-echo -e "Aliases defined:\n General: lt cpv ve va dfh cl cdm pushdm cg"
+echo -e "Aliases defined:\n General: lt cpv ve va dfh cl cdm pushdm cg dict dictlist"
 echo " To connect to fermicloud: fcl... slv slf sgweb fcl-fe-certs (proxy-creds renewal)"
 echo " GWMS: gv.. fe.. fa.."
 echo " HTCondor: cv.. cc.. htc_.."
+echo " infoalias, fclinit"
 '
 
 ## For laptop
 # Fermicloud
 #alias fclrefreshhosts="ssh -K marcom@fermicloudui.fnal.gov  '. /etc/profile.d/one4x.sh; . /etc/profile.d/one4x_user_credentials.sh; ~marcom/bin/myhosts' > ~/.bashcache/fclhosts"
-alias fclrefreshhosts="ssh -K marcom@fermicloudui.fnal.gov  '~marcom/bin/myhosts -r' > ~/.bashcache/fclhosts"
+#alias fclrefreshhosts="ssh -K marcom@fermicloudui.fnal.gov  '~marcom/bin/myhosts -r' > ~/.bashcache/fclhosts"
+alias fclrefreshhosts="ssh -K marcom@fcluigpvm01.fnal.gov  '~marcom/bin/myhosts -r' > ~/.bashcache/fclhosts"
 alias fclhosts='cat ~/.bashcache/fclhosts'
 alias fclinit='ssh-init-host'
-alias fclui='ssh marcom@fermicloudui.fnal.gov'
+#alias fclui='ssh marcom@fermicloudui.fnal.gov'
+alias fclui='ssh marcom@ fcluigpvm01.fnal.gov'
 alias fclvofrontend='ssh root@gwms-dev-frontend.fnal.gov'
 alias fclfactory='ssh root@gwms-dev-factory.fnal.gov'
 alias fclweb='ssh root@gwms-web.fnal.gov'
@@ -72,6 +77,23 @@ alias fareconfig='/bin/systemctl stop gwms-factory; /usr/sbin/gwms-factory recon
 
 
 ## Functions
+dict() {
+  # dict word [dictionary (as from dictlist)]   OR dict word:dictionary
+  if [ -n "$2" ]; then
+    curl dict://dict.org/d:${1}:${2}
+  else
+    curl dict://dict.org/d:${1}
+  fi
+}
+
+translate() {
+  # translate word [to [from]]
+  # using 3 letters languages as in FreeDict
+  local lan_from=${3:-eng}
+  local lan_to=${2:-ita}
+  dict $1:fd-${lan_from}-${lan_to}
+}
+
 cl() {
   # cd and list files
   DIR="$*";
