@@ -688,6 +688,40 @@ ENTRIES = {'old_ITB_FC_CE2': """      <entry name="ITB_FC_CE2" auth_method="grid
          </monitorgroups>
       </entry>      
 """,
+    'ITB_FC_TOK': """      <entry auth_method="grid_proxy" enabled="True" gatekeeper="fermicloud127.fnal.gov fermicloud127.fnal.gov:9619" gridtype="condor" name="ITB_FC_TOK" rsl="" trust_domain="grid" verbosity="std" work_dir="OSG">
+         <config>
+            <max_jobs>
+               <default_per_frontend glideins="5000" held="50" idle="100" />
+               <per_entry glideins="10000" held="1000" idle="2000" />
+               <per_frontends>
+               </per_frontends>
+            </max_jobs>
+            <release max_per_cycle="20" sleep="0.2" />
+            <remove max_per_cycle="5" sleep="0.2" />
+            <restrictions require_glidein_glexec_use="False" require_voms_proxy="False" />
+            <submit cluster_size="10" max_per_cycle="100" sleep="0.2" slots_layout="fixed">
+               <submit_attrs>
+               </submit_attrs>
+            </submit>
+         </config>
+         <allow_frontends>
+         </allow_frontends>
+         <attrs>
+            <attr name="CONDOR_VERSION" const="False" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="8.9.7" comment="needs >= 3.9.1 to enable tokens" />
+            <attr const="False" glidein_publish="False" job_publish="False" name="CONDOR_ARCH" parameter="True" publish="True" type="string" value="default" />
+            <attr const="False" glidein_publish="False" job_publish="False" name="CONDOR_OS" parameter="True" publish="True" type="string" value="rhel7" />
+            <attr const="True" glidein_publish="False" job_publish="False" name="GLEXEC_JOB" parameter="True" publish="True" type="string" value="False" />
+            <attr const="True" glidein_publish="True" job_publish="True" name="GLIDEIN_Site" parameter="True" publish="True" type="string" value="ITB_FC_TOK" />
+            <attr const="True" glidein_publish="True" job_publish="False" name="USE_CCB" parameter="True" publish="True" type="string" value="True" />
+         </attrs>
+         <files>
+         </files>
+         <infosys_refs>
+         </infosys_refs>
+         <monitorgroups>
+         </monitorgroups>
+      </entry>
+""",
     'No': """
 """,
 }
