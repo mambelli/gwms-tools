@@ -30,6 +30,7 @@ echo " infoalias, fclinit"
 alias fclrefreshhosts="ssh -K marcom@fcluigpvm01.fnal.gov  '~marcom/bin/myhosts -r' > ~/.bashcache/fclhosts"
 alias fclhosts='cat ~/.bashcache/fclhosts'
 alias fclinit='ssh-init-host'
+alias fclinfo='gwms-what.sh'
 #alias fclui='ssh marcom@fermicloudui.fnal.gov'
 alias fclui='ssh marcom@fcluigpvm01.fnal.gov'
 alias fclvofrontend='ssh root@gwms-dev-frontend.fnal.gov'
@@ -65,12 +66,14 @@ alias ccrma='htc_foreach_schedd condor_rm -all -name'
 ## These are for root on fermicloud hosts
 # GWMS manage
 alias festart='/bin/systemctl start gwms-frontend'
+alias festartall='for s in fetch-crl-cron httpd condor gwms-frontend fetch-crl-boot; do echo "Starting $s"; /bin/systemctl start $s; done'
 alias festop='/bin/systemctl stop gwms-frontend'
 alias fereconfig='/bin/systemctl stop gwms-frontend; /usr/sbin/gwms-frontend reconfig; /bin/systemctl start gwms-frontend'
 alias feupgrade='/bin/systemctl stop gwms-frontend; /usr/sbin/gwms-frontend upgrade; /bin/systemctl start gwms-frontend'
 alias fecredrenewal='fcl-fe-certs'  # alias to make it easy to find - renew proxy from certs/creds
 alias fetest='su -c "cd condor-test/; condor_submit test-vanilla.sub" -'
 alias fastart='/bin/systemctl start gwms-factory'
+alias fastartall='for s in fetch-crl-cron httpd condor gwms-factory fetch-crl-boot; do echo "Starting $s"; /bin/systemctl start $s; done'
 alias fastop='/bin/systemctl stop gwms-factory'
 alias faupgrade='/bin/systemctl stop gwms-factory; /usr/sbin/gwms-factory upgrade ; /bin/systemctl start gwms-factory'
 alias fareconfig='/bin/systemctl stop gwms-factory; /usr/sbin/gwms-factory reconfig; /bin/systemctl start gwms-factory'
@@ -162,7 +165,7 @@ ssh-last() {
   [ "$sel" == "ce" ] && sel=fermicloud025
   [[ "$sel" =~ ^[0-9]+$ ]] && sel="fermicloud$sel"
   myhost=$(grep "$sel" ~/.bashcache/fclhosts | tail -n 1 | cut -d ' ' -f 3 )
-  [ -z "$myhost" ] && { echo "Host $1 ($sel) not found on fermiclooud list."; return 1; }
+  [ -z "$myhost" ] && { echo "Host $1 ($sel) not found on fermicloud list."; return 1; }
   shift
   echo $myhost
   if $dossh; then
