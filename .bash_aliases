@@ -10,6 +10,7 @@ alias dfh='df -h -T hfs,apfs,exfat,ntfs,noowners'
 # git
 alias gpo='git push origin'
 alias gitmodified="git status | grep modified | awk '{print \$2}' | tr $'\n' ' '"
+alias gitgraph='git log --all --decorate --oneline --graph'
 alias cg='cd `git rev-parse --show-toplevel`'
 alias cdgwms='cd prog/repos/git-gwms/'
 alias cdm='cd-with-memory'
@@ -61,6 +62,9 @@ alias ccq='condor_q -global -allusers'
 alias ccql='htc_foreach_schedd -f1 condor_q -allusers -af ClusterId ProcId GlideinEntryName GlideinClient JobStatus Cmd -name'
 alias ccqlv='htc_foreach_schedd -v -f1 condor_q -allusers -af ClusterId ProcId GlideinEntryName GlideinClient JobStatus Cmd -name'
 alias ccrm='condor_rm -all -name'
+alias ccrmg2='su -c "condor_rm -name schedd_glideins2@$HOSTNAME -all" - gfactory'
+alias ccrmg3='su -c "condor_rm -name schedd_glideins3@$HOSTNAME -all" - gfactory'
+alias ccrmg4='su -c "condor_rm -name schedd_glideins4@$HOSTNAME -all" - gfactory'
 alias ccrma='htc_foreach_schedd condor_rm -all -name'
 
 ## These are for root on fermicloud hosts
