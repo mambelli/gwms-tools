@@ -169,7 +169,10 @@ ssh-last() {
   [ "$sel" == "ce" ] && sel=fermicloud025
   [[ "$sel" =~ ^[0-9]+$ ]] && sel="fermicloud$sel"
   myhost=$(grep "$sel" ~/.bashcache/fclhosts | tail -n 1 | cut -d ' ' -f 3 )
-  [ -z "$myhost" ] && { echo "Host $1 ($sel) not found on fermicloud list."; return 1; }
+  if [ -z "$myhost" ]; then
+    [[ ! "$sel" =~ ^fermicloud[0-9]+\.fnal\.gov$ ]] && { echo "Host $1 ($sel) not found on fermicloud list."; return 1; }
+    myhost=$sel
+  fi
   shift
   echo $myhost
   if $dossh; then
@@ -238,6 +241,23 @@ EOF
   for i in gwms-clean-logs.sh gwms-setup-script.py gwms-what.sh gwms-check-proxies.sh ; do
     curl -L -o $HOME/bin/$i https://raw.githubusercontent.com/mambelli/gwms-tools/master/$i 2>/dev/null && chmod +x $HOME/bin/$i
   done
+  # If root, update some system file
+  if [ -w /etc/profile ]; then
+    if ! grep "# Added by alias-update" /etc/profile >/dev/null; then
+      cat >> /etc/profile << EOF
+# Added by alias-update
+[ -f /etc/motd.local ] && { tput setaf 2; cat /etc/motd.local; tput sgr0; }
+tput setaf 2
+if [ -x /root/bin/gwms-what.sh ]; then
+  /root/bin/gwms-what.sh
+elif [ -x "$HOME/bin/gwms-what.sh" ]; then
+  "$HOME/bin/gwms-what.sh"
+fi
+tput sgr0
+EOF
+    fi
+  fi
+  # source alias definitions to load updates
   . $HOME/.bash_aliases
 }
 
