@@ -26,9 +26,14 @@ echo " infoalias, fclinit"
 
 ## For laptop
 # Fermicloud
+alias fclsettoken='OST_PROJECT=${OST_PROJECT:-glideinwms} ; export OS_TOKEN=$(openstack --os-username=$USER  --os-user-domain-name=services --os-project-domain-name=services --os-project-name $OST_PROJECT  --os-auth-url http://131.225.153.227:5000/v3  --os-system-scope all token issue --format json | jq -r '.id') && rm -f "$HOME"/.fclcache/token && echo "OST_PROJECT=$OST_PROJECT" > "$HOME"/.fclcache/token && chmod 600 "$HOME"/.fclcache/token && echo "OS_TOKEN_DATE=$(date +%Y-%m-%dT%H:%M:%S%z)" >> "$HOME"/.fclcache/token && echo "OS_TOKEN=$OS_TOKEN" >> "$HOME"/.fclcache/token'
+# Use -t to force a terminal session (needed to insert the service password), -tt to force a tesminal also when ssh doesn't have it
+#alias fclremotesettoken="ssh -t -K marcom@openstackuigpvm01.fnal.gov  'bash -i -c fclsettoken' 2> /dev/null"
+alias fclremotesettoken="ssh -t -K openstackuigpvm01.fnal.gov  'bash -i -c fclsettoken' 2> /dev/null"
 #alias fclrefreshhosts="ssh -K marcom@fermicloudui.fnal.gov  '. /etc/profile.d/one4x.sh; . /etc/profile.d/one4x_user_credentials.sh; ~marcom/bin/myhosts' > ~/.bashcache/fclhosts"
 #alias fclrefreshhosts="ssh -K marcom@fermicloudui.fnal.gov  '~marcom/bin/myhosts -r' > ~/.bashcache/fclhosts"
-alias fclrefreshhosts="ssh -K marcom@fcluigpvm01.fnal.gov  '~marcom/bin/myhosts -r' > ~/.bashcache/fclhosts"
+#alias fclrefreshhosts="ssh -K marcom@fcluigpvm01.fnal.gov  '~marcom/bin/myhosts -r' > ~/.bashcache/fclhosts"
+alias fclrefreshhosts="ssh -K openstackuigpvm01.fnal.gov  '$HOME/bin/myhosts' > ~/.bashcache/fclhosts"
 alias fclhosts='cat ~/.bashcache/fclhosts'
 alias fclinit='ssh-init-host'
 alias fclinfo='gwms-what.sh'
@@ -237,6 +242,7 @@ fi
 EOF
   fi
   # copy also some binaries
+  mkdir -p "$HOME"/.fclcache/
   mkdir -p "$HOME"/bin
   for i in gwms-clean-logs.sh gwms-setup-script.py gwms-what.sh gwms-check-proxies.sh ; do
     curl -L -o $HOME/bin/$i https://raw.githubusercontent.com/mambelli/gwms-tools/master/$i 2>/dev/null && chmod +x $HOME/bin/$i
@@ -254,6 +260,7 @@ elif [ -x "$HOME/bin/gwms-what.sh" ]; then
   "$HOME/bin/gwms-what.sh"
 fi
 tput sgr0
+# End from alias-update
 EOF
     fi
   fi
