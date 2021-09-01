@@ -1,4 +1,9 @@
 # Remember, alias are only interactive, not in scriupts w/o: shopt -s expand_aliases
+# bash -i -c 'myalias' will work because makes the shell interactive
+# and use -t to force a terminal session (needed to insert interactive input like a password), -tt to force a tesminal also when ssh doesn't have it
+# e.g. alias fclremotesettoken="ssh -t -K openstackuigpvm01.fnal.gov  'bash -i -c fclsettoken' 2> /dev/null"
+# "$PWD" resolved at definition, '$PWD' resolved at use,  'part1 '"'"'quoted'"'"' part2' adds a single quoted part in a single quote string (string concatenation in shells) 
+
 #alias mvim="/Applications/MacVim.app/contents/MacOS/MacVim"
 alias mvim="open -a MacVim.app $@"
 #alias lt='ls --human-readable --size'
@@ -26,14 +31,14 @@ echo " infoalias, fclinit"
 
 ## For laptop
 # Fermicloud
-alias fclsettoken='OST_PROJECT=${OST_PROJECT:-glideinwms} ; export OS_TOKEN=$(openstack --os-username=$USER  --os-user-domain-name=services --os-project-domain-name=services --os-project-name $OST_PROJECT  --os-auth-url http://131.225.153.227:5000/v3  --os-system-scope all token issue --format json | jq -r '.id') && rm -f "$HOME"/.fclcache/token && echo "OST_PROJECT=$OST_PROJECT" > "$HOME"/.fclcache/token && chmod 600 "$HOME"/.fclcache/token && echo "OS_TOKEN_DATE=$(date +%Y-%m-%dT%H:%M:%S%z)" >> "$HOME"/.fclcache/token && echo "OS_TOKEN=$OS_TOKEN" >> "$HOME"/.fclcache/token'
-# Use -t to force a terminal session (needed to insert the service password), -tt to force a tesminal also when ssh doesn't have it
+alias fclsettoken='OST_PROJECT=${OST_PROJECT:-glideinwms} ; export OS_TOKEN=$(openstack --os-username=$USER  --os-user-domain-name=services --os-project-domain-name=services --os-project-name $OST_PROJECT  --os-auth-url http://131.225.153.227:5000/v3  --os-system-scope all token issue --format json | jq -r '"'"'.id'"'"') && rm -f "$HOME"/.fclcache/token && echo "OST_PROJECT=$OST_PROJECT" > "$HOME"/.fclcache/token && chmod 600 "$HOME"/.fclcache/token && echo "OS_TOKEN_DATE=$(date +%Y-%m-%dT%H:%M:%S%z)" >> "$HOME"/.fclcache/token && echo "OS_TOKEN=$OS_TOKEN" >> "$HOME"/.fclcache/token'
+# Will ask for service password
 #alias fclremotesettoken="ssh -t -K marcom@openstackuigpvm01.fnal.gov  'bash -i -c fclsettoken' 2> /dev/null"
 alias fclremotesettoken="ssh -t -K openstackuigpvm01.fnal.gov  'bash -i -c fclsettoken' 2> /dev/null"
 #alias fclrefreshhosts="ssh -K marcom@fermicloudui.fnal.gov  '. /etc/profile.d/one4x.sh; . /etc/profile.d/one4x_user_credentials.sh; ~marcom/bin/myhosts' > ~/.bashcache/fclhosts"
 #alias fclrefreshhosts="ssh -K marcom@fermicloudui.fnal.gov  '~marcom/bin/myhosts -r' > ~/.bashcache/fclhosts"
 #alias fclrefreshhosts="ssh -K marcom@fcluigpvm01.fnal.gov  '~marcom/bin/myhosts -r' > ~/.bashcache/fclhosts"
-alias fclrefreshhosts="ssh -K openstackuigpvm01.fnal.gov  '$HOME/bin/myhosts' > ~/.bashcache/fclhosts"
+alias fclrefreshhosts="ssh -K openstackuigpvm01.fnal.gov  '~/bin/myhosts' > ~/.bashcache/fclhosts"
 alias fclhosts='cat ~/.bashcache/fclhosts'
 alias fclinit='ssh-init-host'
 alias fclinfo='gwms-what.sh'
