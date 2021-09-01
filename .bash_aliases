@@ -248,7 +248,8 @@ EOF
     curl -L -o $HOME/bin/$i https://raw.githubusercontent.com/mambelli/gwms-tools/master/$i 2>/dev/null && chmod +x $HOME/bin/$i
   done
   # If root, update some system file
-  if [ -w /etc/profile ]; then
+  # This only for fermicloud hosts
+  if [[ -w /etc/profile && "$(hostname)" = fermicloud* ]]; then
     if ! grep "# Added by alias-update" /etc/profile >/dev/null; then
       cat >> /etc/profile << EOF
 # Added by alias-update
